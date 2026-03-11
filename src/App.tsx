@@ -17,6 +17,7 @@ import Creators from "./pages/Creators";
 import Activity from "./pages/Activity";
 import About from "./pages/About";
 import Rules from "./pages/Rules";
+import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -42,6 +43,7 @@ const App = () => (
             <Route path="/activity" element={<Activity />} />
             <Route path="/about" element={<About />} />
             <Route path="/rules" element={<Rules />} />
+            <Route path="/admin" element={<Admin />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AppLayout>

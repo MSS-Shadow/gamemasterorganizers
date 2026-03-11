@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   Home, Trophy, BarChart3, Users, User, Swords, CalendarDays,
   Medal, Star, TrendingUp, BookOpen, ScrollText, MessageCircle,
-  Menu, X, ChevronRight
+  Menu, X, ChevronRight, Shield
 } from "lucide-react";
 
 const navItems = [
@@ -21,6 +21,7 @@ const navItems = [
   { label: "Activity", path: "/activity", icon: BarChart3 },
   { label: "About", path: "/about", icon: BookOpen },
   { label: "Rules", path: "/rules", icon: ScrollText },
+  { label: "Admin", path: "/admin", icon: Shield },
 ];
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
