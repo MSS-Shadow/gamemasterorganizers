@@ -21,6 +21,7 @@ const navItems = [
   { label: "Activity", path: "/activity", icon: BarChart3 },
   { label: "About", path: "/about", icon: BookOpen },
   { label: "Rules", path: "/rules", icon: ScrollText },
+  { label: "Admin", path: "/admin", icon: Shield },
 ];
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {

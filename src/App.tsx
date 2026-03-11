@@ -43,6 +43,7 @@ const App = () => (
             <Route path="/activity" element={<Activity />} />
             <Route path="/about" element={<About />} />
             <Route path="/rules" element={<Rules />} />
+            <Route path="/admin" element={<Admin />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AppLayout>
