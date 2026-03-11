@@ -25,7 +25,8 @@ export default function AdminLobbyGenerator() {
 
   const selectedT = mockTournaments.find((t) => t.id === selectedTournament);
 
-  const teamSize = !selectedT ? 4 : selectedT.mode === "Solo" ? 1 : selectedT.mode === "Duo" ? 2 : selectedT.mode === "Trio" ? 3 : 4;
+  const modeMap: Record<string, number> = { Solo: 1, Duo: 2, Trio: 3, Squad: 4 };
+  const teamSize = selectedT ? (modeMap[selectedT.mode] ?? 4) : 4;
   const teamsPerLobby = Math.floor(LOBBY_CAPACITY / teamSize);
 
   const generateLobbies = () => {
