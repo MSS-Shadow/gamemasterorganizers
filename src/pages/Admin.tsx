@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Shield, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useAuth } from "@/contexts/AuthContext";
 import AdminDashboard from "@/components/admin/AdminDashboard";
 import AdminPlayers from "@/components/admin/AdminPlayers";
 import AdminCreators from "@/components/admin/AdminCreators";
@@ -13,9 +14,9 @@ import AdminBackup from "@/components/admin/AdminBackup";
 
 export default function AdminPage() {
   const [globalSearch, setGlobalSearch] = useState("");
+  const { isAdmin, loading } = useAuth();
 
-  // TODO: Replace with real auth check when Lovable Cloud is enabled
-  const isAdmin = true;
+  if (loading) return <div className="text-center py-20 text-muted-foreground">Cargando...</div>;
 
   if (!isAdmin) {
     return (
@@ -29,7 +30,6 @@ export default function AdminPage() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
           <div className="p-2.5 rounded-lg bg-primary/10">
@@ -42,16 +42,10 @@ export default function AdminPage() {
         </div>
         <div className="relative w-full sm:max-w-xs">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Global search..."
-            value={globalSearch}
-            onChange={(e) => setGlobalSearch(e.target.value)}
-            className="pl-9"
-          />
+          <Input placeholder="Global search..." value={globalSearch} onChange={(e) => setGlobalSearch(e.target.value)} className="pl-9" />
         </div>
       </div>
 
-      {/* Tabs */}
       <Tabs defaultValue="dashboard" className="space-y-4">
         <TabsList className="flex flex-wrap h-auto gap-1 bg-card border border-border p-1">
           <TabsTrigger value="dashboard" className="text-xs">Dashboard</TabsTrigger>

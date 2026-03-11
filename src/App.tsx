@@ -3,6 +3,7 @@ import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { AuthProvider } from "@/contexts/AuthContext";
 import AppLayout from "@/components/AppLayout";
 import Index from "./pages/Index";
 import Tournaments from "./pages/Tournaments";
@@ -18,6 +19,8 @@ import Activity from "./pages/Activity";
 import About from "./pages/About";
 import Rules from "./pages/Rules";
 import Admin from "./pages/Admin";
+import Auth from "./pages/Auth";
+import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -28,25 +31,29 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <AppLayout>
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/tournaments" element={<Tournaments />} />
-            <Route path="/rankings" element={<Rankings />} />
-            <Route path="/teams" element={<Teams />} />
-            <Route path="/players" element={<Players />} />
-            <Route path="/scrims" element={<Scrims />} />
-            <Route path="/upcoming" element={<Upcoming />} />
-            <Route path="/results" element={<Results />} />
-            <Route path="/hall-of-fame" element={<HallOfFame />} />
-            <Route path="/creators" element={<Creators />} />
-            <Route path="/activity" element={<Activity />} />
-            <Route path="/about" element={<About />} />
-            <Route path="/rules" element={<Rules />} />
-            <Route path="/admin" element={<Admin />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </AppLayout>
+        <AuthProvider>
+          <AppLayout>
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/tournaments" element={<Tournaments />} />
+              <Route path="/rankings" element={<Rankings />} />
+              <Route path="/teams" element={<Teams />} />
+              <Route path="/players" element={<Players />} />
+              <Route path="/scrims" element={<Scrims />} />
+              <Route path="/upcoming" element={<Upcoming />} />
+              <Route path="/results" element={<Results />} />
+              <Route path="/hall-of-fame" element={<HallOfFame />} />
+              <Route path="/creators" element={<Creators />} />
+              <Route path="/activity" element={<Activity />} />
+              <Route path="/about" element={<About />} />
+              <Route path="/rules" element={<Rules />} />
+              <Route path="/admin" element={<Admin />} />
+              <Route path="/auth" element={<Auth />} />
+              <Route path="/profile" element={<Profile />} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </AppLayout>
+        </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
