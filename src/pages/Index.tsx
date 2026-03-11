@@ -3,6 +3,10 @@ import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import StatCard from "@/components/StatCard";
 import LobbyProgress from "@/components/LobbyProgress";
+import heroBanner from "@/assets/hero-banner.jpg";
+import charactersAction from "@/assets/characters-action.jpg";
+import characterCyber from "@/assets/character-cyber.jpg";
+import charactersSquad from "@/assets/characters-squad.png";
 
 const upcomingTournaments = [
   { id: 1, name: "BloodStrike Open #4", mode: "Squad", date: "Mar 22, 2026", teams: 42, max: 60 },
@@ -19,20 +23,26 @@ export default function HomePage() {
   return (
     <div className="space-y-8">
       {/* Hero Banner */}
-      <div className="relative rounded-lg overflow-hidden bg-card border border-border p-8 md:p-12">
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent" />
-        <div className="relative">
+      <div className="relative rounded-lg overflow-hidden border border-border">
+        <img
+          src={heroBanner}
+          alt="BloodStrike Hero"
+          className="w-full h-[280px] md:h-[400px] object-cover"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-r from-background/80 to-transparent" />
+        <div className="absolute bottom-0 left-0 p-6 md:p-10">
           <div className="flex items-center gap-2 mb-2">
             <Trophy className="h-5 w-5 text-primary" />
             <span className="text-xs font-medium uppercase tracking-wider text-primary">
               Game Master Organizers
             </span>
           </div>
-          <h1 className="text-3xl md:text-5xl font-bold text-foreground text-balance mb-4">
+          <h1 className="text-3xl md:text-5xl font-bold text-foreground text-balance mb-3">
             BloodStrike Open #4.{" "}
             <span className="text-primary">Register Now.</span>
           </h1>
-          <p className="text-muted-foreground max-w-xl mb-6">
+          <p className="text-muted-foreground max-w-xl mb-5 text-sm md:text-base">
             The competitive home for BloodStrike. Tournaments, scrims, rankings — all in one place.
           </p>
           <Link
@@ -48,13 +58,19 @@ export default function HomePage() {
       <motion.div
         whileHover={{ y: -4 }}
         transition={{ ease: [0.32, 0.72, 0, 1], duration: 0.3 }}
-        className="bg-card border border-border rounded-lg p-6"
+        className="relative bg-card border border-border rounded-lg p-6 overflow-hidden"
       >
-        <div className="flex items-center gap-2 mb-4">
+        <img
+          src={charactersSquad}
+          alt=""
+          className="absolute right-0 top-0 h-full w-1/3 object-cover opacity-20 mask-l"
+          style={{ maskImage: "linear-gradient(to right, transparent, black 40%)" }}
+        />
+        <div className="relative flex items-center gap-2 mb-4">
           <Crown className="h-5 w-5 text-primary" />
           <h2 className="text-xl font-semibold text-foreground">Current Champion</h2>
         </div>
-        <div className="flex items-center gap-4">
+        <div className="relative flex items-center gap-4">
           <div className="h-14 w-14 rounded-lg bg-primary/10 flex items-center justify-center">
             <Trophy className="h-7 w-7 text-primary" />
           </div>
@@ -71,6 +87,26 @@ export default function HomePage() {
         <StatCard icon={Swords} label="Scrims" value={48} sub="This month" />
         <StatCard icon={CalendarDays} label="Upcoming" value={3} sub="Events" />
         <StatCard icon={Megaphone} label="Players" value={320} sub="Registered" />
+      </div>
+
+      {/* Featured Images Strip */}
+      <div className="grid grid-cols-2 gap-4">
+        <div className="relative rounded-lg overflow-hidden border border-border aspect-[16/9]">
+          <img src={charactersAction} alt="BloodStrike Characters" className="w-full h-full object-cover" />
+          <div className="absolute inset-0 bg-gradient-to-t from-background/90 to-transparent" />
+          <div className="absolute bottom-3 left-3">
+            <p className="text-xs font-semibold text-primary uppercase tracking-wider">Competitive</p>
+            <p className="text-sm font-bold text-foreground">Join the Battle</p>
+          </div>
+        </div>
+        <div className="relative rounded-lg overflow-hidden border border-border aspect-[16/9]">
+          <img src={characterCyber} alt="BloodStrike Character" className="w-full h-full object-cover" />
+          <div className="absolute inset-0 bg-gradient-to-t from-background/90 to-transparent" />
+          <div className="absolute bottom-3 left-3">
+            <p className="text-xs font-semibold text-primary uppercase tracking-wider">Community</p>
+            <p className="text-sm font-bold text-foreground">320+ Players</p>
+          </div>
+        </div>
       </div>
 
       {/* Upcoming Tournaments */}
