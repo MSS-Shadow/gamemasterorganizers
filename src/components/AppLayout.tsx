@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   Home, Trophy, BarChart3, Users, User, Swords, CalendarDays,
   Medal, Star, TrendingUp, BookOpen, ScrollText, MessageCircle,
-  Menu, X, ChevronRight
+  Menu, X, ChevronRight, Shield
 } from "lucide-react";
 
 const navItems = [
