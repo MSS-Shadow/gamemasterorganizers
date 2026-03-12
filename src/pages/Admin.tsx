@@ -55,6 +55,7 @@ export default function AdminPage() {
           <TabsTrigger value="tournaments" className="text-xs">Tournaments</TabsTrigger>
           <TabsTrigger value="scrims" className="text-xs">Scrims</TabsTrigger>
           <TabsTrigger value="lobbies" className="text-xs">Lobby Generator</TabsTrigger>
+          <TabsTrigger value="roles" className="text-xs">Role Manager</TabsTrigger>
           <TabsTrigger value="activity" className="text-xs">Activity Log</TabsTrigger>
           <TabsTrigger value="backup" className="text-xs">Backup</TabsTrigger>
         </TabsList>
@@ -65,6 +66,7 @@ export default function AdminPage() {
         <TabsContent value="tournaments"><AdminTournamentRegistrations /></TabsContent>
         <TabsContent value="scrims"><AdminScrimParticipants /></TabsContent>
         <TabsContent value="lobbies"><AdminLobbyGenerator /></TabsContent>
+        <TabsContent value="roles"><AdminRoleManager /></TabsContent>
         <TabsContent value="activity"><AdminActivityLog /></TabsContent>
         <TabsContent value="backup"><AdminBackup /></TabsContent>
       </Tabs>
