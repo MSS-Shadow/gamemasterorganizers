@@ -11,6 +11,7 @@ import AdminScrimParticipants from "@/components/admin/AdminScrimParticipants";
 import AdminLobbyGenerator from "@/components/admin/AdminLobbyGenerator";
 import AdminActivityLog from "@/components/admin/AdminActivityLog";
 import AdminBackup from "@/components/admin/AdminBackup";
+import AdminRoleManager from "@/components/admin/AdminRoleManager";
 
 export default function AdminPage() {
   const [globalSearch, setGlobalSearch] = useState("");
