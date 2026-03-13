@@ -24,8 +24,8 @@ export default function AdminPage() {
     return (
       <div className="flex flex-col items-center justify-center py-20 text-center">
         <Shield className="h-12 w-12 text-destructive mb-4" />
-        <h1 className="text-2xl font-bold text-foreground mb-2">Access Denied</h1>
-        <p className="text-muted-foreground">You need admin privileges to access this page.</p>
+        <h1 className="text-2xl font-bold text-foreground mb-2">Acceso Denegado</h1>
+        <p className="text-muted-foreground">Necesitas privilegios de administrador para acceder a esta página.</p>
       </div>
     );
   }
@@ -38,28 +38,27 @@ export default function AdminPage() {
             <Shield className="h-6 w-6 text-primary" />
           </div>
           <div>
-            <h1 className="text-3xl font-bold text-foreground">Admin Panel</h1>
-            <p className="text-sm text-muted-foreground">Game Master Organizers — Management</p>
+            <h1 className="text-3xl font-bold text-foreground">Panel de Administración</h1>
+            <p className="text-sm text-muted-foreground">Game Master Organizers — Gestión</p>
           </div>
         </div>
         <div className="relative w-full sm:max-w-xs">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input placeholder="Global search..." value={globalSearch} onChange={(e) => setGlobalSearch(e.target.value)} className="pl-9" />
+          <Input placeholder="Buscar..." value={globalSearch} onChange={(e) => setGlobalSearch(e.target.value)} className="pl-9" />
         </div>
       </div>
 
       <Tabs defaultValue="dashboard" className="space-y-4">
         <TabsList className="flex flex-wrap h-auto gap-1 bg-card border border-border p-1">
-          <TabsTrigger value="dashboard" className="text-xs">Dashboard</TabsTrigger>
-          <TabsTrigger value="players" className="text-xs">Players</TabsTrigger>
-          <TabsTrigger value="creators" className="text-xs">Creators</TabsTrigger>
-          <TabsTrigger value="tournaments" className="text-xs">Tournaments</TabsTrigger>
+          <TabsTrigger value="dashboard" className="text-xs">Panel</TabsTrigger>
+          <TabsTrigger value="players" className="text-xs">Jugadores</TabsTrigger>
+          <TabsTrigger value="creators" className="text-xs">Creadores</TabsTrigger>
+          <TabsTrigger value="tournaments" className="text-xs">Torneos</TabsTrigger>
           <TabsTrigger value="scrims" className="text-xs">Scrims</TabsTrigger>
-          <TabsTrigger value="lobbies" className="text-xs">Lobby Generator</TabsTrigger>
-          <TabsTrigger value="roles" className="text-xs">Role Manager</TabsTrigger>
-          <TabsTrigger value="moderation" className="text-xs">Moderation Log</TabsTrigger>
-          <TabsTrigger value="activity" className="text-xs">Activity Log</TabsTrigger>
-          <TabsTrigger value="backup" className="text-xs">Backup</TabsTrigger>
+          <TabsTrigger value="lobbies" className="text-xs">Lobbies</TabsTrigger>
+          <TabsTrigger value="roles" className="text-xs">Roles</TabsTrigger>
+          <TabsTrigger value="moderation" className="text-xs">Moderación</TabsTrigger>
+          <TabsTrigger value="backup" className="text-xs">Respaldo</TabsTrigger>
         </TabsList>
 
         <TabsContent value="dashboard"><AdminDashboard /></TabsContent>
@@ -70,7 +69,6 @@ export default function AdminPage() {
         <TabsContent value="lobbies"><AdminLobbyGenerator /></TabsContent>
         <TabsContent value="roles"><AdminRoleManager /></TabsContent>
         <TabsContent value="moderation"><AdminModerationLog /></TabsContent>
-        <TabsContent value="activity"><AdminActivityLog /></TabsContent>
         <TabsContent value="backup"><AdminBackup /></TabsContent>
       </Tabs>
     </div>

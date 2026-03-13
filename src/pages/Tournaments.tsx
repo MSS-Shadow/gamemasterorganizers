@@ -11,16 +11,15 @@ export default function TournamentsPage() {
   const [tournaments, setTournaments] = useState<Tournament[]>([]);
   const [regCounts, setRegCounts] = useState<Record<string, number>>({});
   const [selectedTournament, setSelectedTournament] = useState<Tournament | null>(null);
-  const [filterMode, setFilterMode] = useState("All");
+  const [filterMode, setFilterMode] = useState("Todos");
 
-  const modes = ["All", "Solo", "Duo", "Trio", "Squad"];
+  const modes = ["Todos", "Solo", "Duo", "Trio", "Squad"];
 
   useEffect(() => {
     const fetch = async () => {
       const { data } = await supabase.from("tournaments").select("*").order("date", { ascending: false });
       if (data) {
         setTournaments(data);
-        // Fetch registration counts
         const { data: regs } = await supabase.from("tournament_registrations").select("tournament_id");
         if (regs) {
           const counts: Record<string, number> = {};
@@ -32,26 +31,21 @@ export default function TournamentsPage() {
     fetch();
   }, [selectedTournament]);
 
-  const filtered = filterMode === "All" ? tournaments : tournaments.filter((t) => t.mode === filterMode);
+  const filtered = filterMode === "Todos" ? tournaments : tournaments.filter((t) => t.mode === filterMode);
 
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-foreground mb-1">Tournaments</h1>
-        <p className="text-muted-foreground">Browse and register for upcoming competitions.</p>
+        <h1 className="text-3xl font-bold text-foreground mb-1">Torneos</h1>
+        <p className="text-muted-foreground">Explora e inscríbete en las próximas competiciones.</p>
       </div>
 
       <div className="flex gap-2 flex-wrap">
         {modes.map((m) => (
-          <button
-            key={m}
-            onClick={() => setFilterMode(m)}
+          <button key={m} onClick={() => setFilterMode(m)}
             className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-              filterMode === m
-                ? "bg-primary text-primary-foreground"
-                : "bg-card text-muted-foreground border border-border hover:text-foreground"
-            }`}
-          >
+              filterMode === m ? "bg-primary text-primary-foreground" : "bg-card text-muted-foreground border border-border hover:text-foreground"
+            }`}>
             {m}
           </button>
         ))}
@@ -72,21 +66,19 @@ export default function TournamentsPage() {
                   </div>
                   <div>
                     <h3 className="font-semibold text-foreground">{t.name}</h3>
-                    <p className="text-sm text-muted-foreground">{t.mode} · {new Date(t.date).toLocaleDateString()}</p>
+                    <p className="text-sm text-muted-foreground">{t.mode} · {new Date(t.date).toLocaleDateString("es")}</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
                   <span className={`px-2.5 py-1 rounded text-xs font-medium ${
                     t.status === "Open" ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"
                   }`}>
-                    {t.status}
+                    {t.status === "Open" ? "Abierto" : t.status}
                   </span>
                   {t.status === "Open" && (
-                    <button
-                      onClick={() => setSelectedTournament(t)}
-                      className="bg-primary text-primary-foreground px-4 py-2 rounded-md text-sm font-semibold hover:brightness-110 active:scale-95 transition-all"
-                    >
-                      Register
+                    <button onClick={() => setSelectedTournament(t)}
+                      className="bg-primary text-primary-foreground px-4 py-2 rounded-md text-sm font-semibold hover:brightness-110 active:scale-95 transition-all">
+                      Inscribirse
                     </button>
                   )}
                 </div>

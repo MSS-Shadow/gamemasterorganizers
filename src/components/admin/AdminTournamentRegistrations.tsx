@@ -36,7 +36,7 @@ export default function AdminTournamentRegistrations() {
       if (r) {
         const mapped: RegWithTournament[] = r.map((reg) => ({
           ...reg,
-          tournamentName: t.find((tour) => tour.id === reg.tournament_id)?.name ?? "Unknown",
+          tournamentName: t.find((tour) => tour.id === reg.tournament_id)?.name ?? "Desconocido",
         }));
         setRegistrations(mapped);
       }
@@ -51,8 +51,8 @@ export default function AdminTournamentRegistrations() {
     : registrations.filter((r) => r.tournament_id === selectedTournament);
 
   const handleExport = () => {
-    exportToCsv("tournament_registrations", ["Tournament", "Team", "Nickname", "Player ID", "Platform", "Date"],
-      filtered.map((r) => [r.tournamentName, r.tournament_team_name, r.nickname, r.player_id, r.platform, new Date(r.created_at).toLocaleDateString()])
+    exportToCsv("inscripciones_torneos", ["Torneo", "Equipo", "Nickname", "Player ID", "Plataforma", "Fecha"],
+      filtered.map((r) => [r.tournamentName, r.tournament_team_name, r.nickname, r.player_id, r.platform, new Date(r.created_at).toLocaleDateString("es")])
     );
   };
 
@@ -97,13 +97,13 @@ export default function AdminTournamentRegistrations() {
   return (
     <div className="space-y-4">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <h2 className="text-2xl font-bold text-foreground">Tournament Registrations</h2>
+        <h2 className="text-2xl font-bold text-foreground">Inscripciones de Torneos</h2>
         <div className="flex gap-2">
           <Button variant="outline" size="sm" onClick={() => setShowCreateDialog(true)}>
-            <Plus className="h-4 w-4 mr-1" /> Create Tournament
+            <Plus className="h-4 w-4 mr-1" /> Crear Torneo
           </Button>
           <Button variant="outline" size="sm" onClick={handleExport}>
-            <Download className="h-4 w-4 mr-1" /> Export to CSV
+            <Download className="h-4 w-4 mr-1" /> Exportar CSV
           </Button>
         </div>
       </div>
@@ -111,10 +111,10 @@ export default function AdminTournamentRegistrations() {
       <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
         <Select value={selectedTournament} onValueChange={setSelectedTournament}>
           <SelectTrigger className="w-full max-w-xs">
-            <SelectValue placeholder="Filter by tournament" />
+            <SelectValue placeholder="Filtrar por torneo" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Tournaments</SelectItem>
+            <SelectItem value="all">Todos los Torneos</SelectItem>
             {tournaments.map((t) => (
               <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>
             ))}
@@ -122,7 +122,7 @@ export default function AdminTournamentRegistrations() {
         </Select>
         {selectedTournament !== "all" && (
           <Button variant="destructive" size="sm" onClick={() => deleteTournament(selectedTournament)}>
-            <Trash2 className="h-4 w-4 mr-1" /> Delete Tournament
+            <Trash2 className="h-4 w-4 mr-1" /> Eliminar Torneo
           </Button>
         )}
       </div>
@@ -130,19 +130,19 @@ export default function AdminTournamentRegistrations() {
       {/* Tournament list */}
       {tournaments.length > 0 && (
         <div className="border border-border rounded-lg p-4 space-y-2">
-          <h3 className="text-sm font-semibold text-foreground">Tournaments ({tournaments.length})</h3>
+          <h3 className="text-sm font-semibold text-foreground">Torneos ({tournaments.length})</h3>
           <div className="grid gap-2">
             {tournaments.map((t) => (
               <div key={t.id} className="flex items-center justify-between bg-muted/30 rounded-md px-3 py-2">
                 <div className="flex items-center gap-3">
                   <span className="text-foreground font-medium text-sm">{t.name}</span>
                   <Badge variant="outline" className="text-xs">{t.mode}</Badge>
-                  <span className="text-muted-foreground text-xs">{new Date(t.date).toLocaleDateString()}</span>
+                  <span className="text-muted-foreground text-xs">{new Date(t.date).toLocaleDateString("es")}</span>
                   <Badge className={t.status === "Open" ? "bg-primary/20 text-primary border-primary/30" : "bg-muted text-muted-foreground"}>
-                    {t.status}
+                    {t.status === "Open" ? "Abierto" : t.status}
                   </Badge>
                 </div>
-                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => deleteTournament(t.id)} title="Delete tournament">
+                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => deleteTournament(t.id)} title="Eliminar torneo">
                   <Trash2 className="h-4 w-4 text-destructive" />
                 </Button>
               </div>
@@ -156,13 +156,13 @@ export default function AdminTournamentRegistrations() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Tournament</TableHead>
-              <TableHead>Team</TableHead>
+              <TableHead>Torneo</TableHead>
+              <TableHead>Equipo</TableHead>
               <TableHead>Nickname</TableHead>
               <TableHead className="hidden md:table-cell">Player ID</TableHead>
-              <TableHead className="hidden md:table-cell">Platform</TableHead>
-              <TableHead className="hidden md:table-cell">Date</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
+              <TableHead className="hidden md:table-cell">Plataforma</TableHead>
+              <TableHead className="hidden md:table-cell">Fecha</TableHead>
+              <TableHead className="text-right">Acciones</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -173,16 +173,16 @@ export default function AdminTournamentRegistrations() {
                 <TableCell className="text-foreground">{r.nickname}</TableCell>
                 <TableCell className="hidden md:table-cell text-muted-foreground font-mono text-xs">{r.player_id}</TableCell>
                 <TableCell className="hidden md:table-cell"><Badge variant="outline">{r.platform}</Badge></TableCell>
-                <TableCell className="hidden md:table-cell text-muted-foreground text-xs">{new Date(r.created_at).toLocaleDateString()}</TableCell>
+                <TableCell className="hidden md:table-cell text-muted-foreground text-xs">{new Date(r.created_at).toLocaleDateString("es")}</TableCell>
                 <TableCell className="text-right">
-                  <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => deleteRegistration(r.id)} title="Delete registration">
+                  <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => deleteRegistration(r.id)} title="Eliminar inscripción">
                     <Trash2 className="h-4 w-4 text-destructive" />
                   </Button>
                 </TableCell>
               </TableRow>
             ))}
             {filtered.length === 0 && (
-              <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground py-8">No registrations found.</TableCell></TableRow>
+              <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground py-8">No se encontraron inscripciones.</TableCell></TableRow>
             )}
           </TableBody>
         </Table>
@@ -192,16 +192,16 @@ export default function AdminTournamentRegistrations() {
       <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>Create Tournament</DialogTitle>
-            <DialogDescription>Fill in the tournament details.</DialogDescription>
+            <DialogTitle>Crear Torneo</DialogTitle>
+            <DialogDescription>Completa los detalles del torneo.</DialogDescription>
           </DialogHeader>
           <div className="space-y-3">
             <div>
-              <label className="text-sm text-muted-foreground mb-1 block">Name</label>
+              <label className="text-sm text-muted-foreground mb-1 block">Nombre</label>
               <Input value={newTournament.name} onChange={(e) => setNewTournament({ ...newTournament, name: e.target.value })} placeholder="BloodStrike Open #5" />
             </div>
             <div>
-              <label className="text-sm text-muted-foreground mb-1 block">Mode</label>
+              <label className="text-sm text-muted-foreground mb-1 block">Modo</label>
               <Select value={newTournament.mode} onValueChange={(v) => setNewTournament({ ...newTournament, mode: v })}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
@@ -213,16 +213,16 @@ export default function AdminTournamentRegistrations() {
               </Select>
             </div>
             <div>
-              <label className="text-sm text-muted-foreground mb-1 block">Date</label>
+              <label className="text-sm text-muted-foreground mb-1 block">Fecha</label>
               <Input type="datetime-local" value={newTournament.date} onChange={(e) => setNewTournament({ ...newTournament, date: e.target.value })} />
             </div>
             <div>
-              <label className="text-sm text-muted-foreground mb-1 block">Max Players</label>
+              <label className="text-sm text-muted-foreground mb-1 block">Máx. Jugadores</label>
               <Input type="number" value={newTournament.max_players} onChange={(e) => setNewTournament({ ...newTournament, max_players: parseInt(e.target.value) || 120 })} />
             </div>
           </div>
           <Button onClick={createTournament} disabled={creating} className="w-full mt-2">
-            {creating ? "Creating..." : "Create Tournament"}
+            {creating ? "Creando..." : "Crear Torneo"}
           </Button>
         </DialogContent>
       </Dialog>
