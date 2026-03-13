@@ -10,6 +10,7 @@ import AdminTournamentRegistrations from "@/components/admin/AdminTournamentRegi
 import AdminScrimParticipants from "@/components/admin/AdminScrimParticipants";
 import AdminLobbyGenerator from "@/components/admin/AdminLobbyGenerator";
 import AdminActivityLog from "@/components/admin/AdminActivityLog";
+import AdminModerationLog from "@/components/admin/AdminModerationLog";
 import AdminBackup from "@/components/admin/AdminBackup";
 import AdminRoleManager from "@/components/admin/AdminRoleManager";
 
