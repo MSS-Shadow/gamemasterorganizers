@@ -10,6 +10,7 @@ import AdminTournamentRegistrations from "@/components/admin/AdminTournamentRegi
 import AdminScrimParticipants from "@/components/admin/AdminScrimParticipants";
 import AdminLobbyGenerator from "@/components/admin/AdminLobbyGenerator";
 import AdminActivityLog from "@/components/admin/AdminActivityLog";
+import AdminModerationLog from "@/components/admin/AdminModerationLog";
 import AdminBackup from "@/components/admin/AdminBackup";
 import AdminRoleManager from "@/components/admin/AdminRoleManager";
 
@@ -56,6 +57,7 @@ export default function AdminPage() {
           <TabsTrigger value="scrims" className="text-xs">Scrims</TabsTrigger>
           <TabsTrigger value="lobbies" className="text-xs">Lobby Generator</TabsTrigger>
           <TabsTrigger value="roles" className="text-xs">Role Manager</TabsTrigger>
+          <TabsTrigger value="moderation" className="text-xs">Moderation Log</TabsTrigger>
           <TabsTrigger value="activity" className="text-xs">Activity Log</TabsTrigger>
           <TabsTrigger value="backup" className="text-xs">Backup</TabsTrigger>
         </TabsList>
@@ -67,6 +69,7 @@ export default function AdminPage() {
         <TabsContent value="scrims"><AdminScrimParticipants /></TabsContent>
         <TabsContent value="lobbies"><AdminLobbyGenerator /></TabsContent>
         <TabsContent value="roles"><AdminRoleManager /></TabsContent>
+        <TabsContent value="moderation"><AdminModerationLog /></TabsContent>
         <TabsContent value="activity"><AdminActivityLog /></TabsContent>
         <TabsContent value="backup"><AdminBackup /></TabsContent>
       </Tabs>
