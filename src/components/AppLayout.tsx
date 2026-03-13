@@ -9,19 +9,19 @@ import {
 import { useAuth } from "@/contexts/AuthContext";
 
 const navItems = [
-  { label: "Home", path: "/", icon: Home },
-  { label: "Tournaments", path: "/tournaments", icon: Trophy },
+  { label: "Inicio", path: "/", icon: Home },
+  { label: "Torneos", path: "/tournaments", icon: Trophy },
   { label: "Rankings", path: "/rankings", icon: BarChart3 },
-  { label: "Teams", path: "/teams", icon: Users },
-  { label: "Players", path: "/players", icon: User },
+  { label: "Equipos", path: "/teams", icon: Users },
+  { label: "Jugadores", path: "/players", icon: User },
   { label: "Scrims", path: "/scrims", icon: Swords },
-  { label: "Upcoming", path: "/upcoming", icon: CalendarDays },
-  { label: "Results", path: "/results", icon: Medal },
-  { label: "Hall of Fame", path: "/hall-of-fame", icon: Star },
-  { label: "Creators", path: "/creators", icon: TrendingUp },
-  { label: "Activity", path: "/activity", icon: BarChart3 },
-  { label: "About", path: "/about", icon: BookOpen },
-  { label: "Rules", path: "/rules", icon: ScrollText },
+  { label: "Próximos", path: "/upcoming", icon: CalendarDays },
+  { label: "Resultados", path: "/results", icon: Medal },
+  { label: "Salón de la Fama", path: "/hall-of-fame", icon: Star },
+  { label: "Creadores", path: "/creators", icon: TrendingUp },
+  { label: "Actividad", path: "/activity", icon: BarChart3 },
+  { label: "Acerca de", path: "/about", icon: BookOpen },
+  { label: "Reglas", path: "/rules", icon: ScrollText },
 ];
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
@@ -71,7 +71,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           <a href="https://discord.gg" target="_blank" rel="noopener noreferrer"
             className="flex items-center gap-2 px-3 py-2.5 rounded-md bg-accent/20 text-accent text-sm font-medium hover:bg-accent/30 transition-colors">
             <MessageCircle className="h-4 w-4" />
-            Join Discord
+            Únete al Discord
           </a>
         </div>
       </aside>

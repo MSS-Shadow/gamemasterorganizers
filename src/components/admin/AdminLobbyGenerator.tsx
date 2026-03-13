@@ -1,9 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Download, Shuffle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { mockTournaments, mockTournamentRegs } from "@/lib/mockAdminData";
+import { supabase } from "@/integrations/supabase/client";
 import { exportToCsv } from "@/lib/exportCsv";
 
 const LOBBY_CAPACITY = 120;
@@ -19,25 +19,40 @@ interface Lobby {
   playerCount: number;
 }
 
+interface TournamentOption {
+  id: string;
+  name: string;
+  mode: string;
+}
+
 export default function AdminLobbyGenerator() {
+  const [tournaments, setTournaments] = useState<TournamentOption[]>([]);
   const [selectedTournament, setSelectedTournament] = useState("");
   const [lobbies, setLobbies] = useState<Lobby[]>([]);
 
-  const selectedT = mockTournaments.find((t) => t.id === selectedTournament);
+  useEffect(() => {
+    const fetch = async () => {
+      const { data } = await supabase.from("tournaments").select("id, name, mode").order("date", { ascending: false });
+      setTournaments(data ?? []);
+    };
+    fetch();
+  }, []);
+
+  const selectedT = tournaments.find((t) => t.id === selectedTournament);
 
   const modeMap: Record<string, number> = { Solo: 1, Duo: 2, Trio: 3, Squad: 4 };
   const teamSize = selectedT ? (modeMap[selectedT.mode] ?? 4) : 4;
   const teamsPerLobby = Math.floor(LOBBY_CAPACITY / teamSize);
 
-  const generateLobbies = () => {
+  const generateLobbies = async () => {
     if (!selectedT) return;
-    const regs = mockTournamentRegs.filter((r) => r.tournamentName === selectedT.name);
+    const { data: regs } = await supabase.from("tournament_registrations").select("*").eq("tournament_id", selectedT.id);
+    if (!regs) return;
 
-    // Group by team
     const teamMap = new Map<string, { nickname: string; playerId: string; platform: string }[]>();
     regs.forEach((r) => {
-      if (!teamMap.has(r.teamName)) teamMap.set(r.teamName, []);
-      teamMap.get(r.teamName)!.push({ nickname: r.playerNickname, playerId: r.playerId, platform: r.platform });
+      if (!teamMap.has(r.tournament_team_name)) teamMap.set(r.tournament_team_name, []);
+      teamMap.get(r.tournament_team_name)!.push({ nickname: r.nickname, playerId: r.player_id, platform: r.platform });
     });
 
     const allTeams: LobbyTeam[] = Array.from(teamMap.entries()).map(([teamName, players]) => ({ teamName, players }));
@@ -58,61 +73,51 @@ export default function AdminLobbyGenerator() {
 
   const exportLobby = (lobby: Lobby) => {
     const rows: string[][] = [];
-    lobby.teams.forEach((t) => {
-      t.players.forEach((p) => {
-        rows.push([t.teamName, p.nickname, p.playerId, p.platform]);
-      });
-    });
-    exportToCsv(`lobby_${lobby.number}`, ["Team", "Nickname", "Player ID", "Platform"], rows);
+    lobby.teams.forEach((t) => { t.players.forEach((p) => { rows.push([t.teamName, p.nickname, p.playerId, p.platform]); }); });
+    exportToCsv(`lobby_${lobby.number}`, ["Equipo", "Nickname", "Player ID", "Plataforma"], rows);
   };
 
   const exportAllLobbies = () => {
     const rows: string[][] = [];
-    lobbies.forEach((lobby) => {
-      lobby.teams.forEach((t) => {
-        t.players.forEach((p) => {
-          rows.push([`Lobby ${lobby.number}`, t.teamName, p.nickname, p.playerId, p.platform]);
-        });
-      });
-    });
-    exportToCsv("all_lobbies", ["Lobby", "Team", "Nickname", "Player ID", "Platform"], rows);
+    lobbies.forEach((lobby) => { lobby.teams.forEach((t) => { t.players.forEach((p) => { rows.push([`Lobby ${lobby.number}`, t.teamName, p.nickname, p.playerId, p.platform]); }); }); });
+    exportToCsv("todos_los_lobbies", ["Lobby", "Equipo", "Nickname", "Player ID", "Plataforma"], rows);
   };
 
   return (
     <div className="space-y-6">
-      <h2 className="text-2xl font-bold text-foreground">Generate Lobby List</h2>
+      <h2 className="text-2xl font-bold text-foreground">Generador de Lobbies</h2>
 
       <div className="flex flex-col sm:flex-row gap-3 items-start">
         <Select value={selectedTournament} onValueChange={setSelectedTournament}>
           <SelectTrigger className="w-full max-w-xs">
-            <SelectValue placeholder="Select tournament" />
+            <SelectValue placeholder="Seleccionar torneo" />
           </SelectTrigger>
           <SelectContent>
-            {mockTournaments.map((t) => (
+            {tournaments.map((t) => (
               <SelectItem key={t.id} value={t.id}>{t.name} ({t.mode})</SelectItem>
             ))}
           </SelectContent>
         </Select>
         <Button onClick={generateLobbies} disabled={!selectedTournament}>
-          <Shuffle className="h-4 w-4 mr-1" /> Generate Lobbies
+          <Shuffle className="h-4 w-4 mr-1" /> Generar Lobbies
         </Button>
       </div>
 
       {selectedT && (
         <div className="bg-card border border-border rounded-lg p-4 text-sm text-muted-foreground space-y-1">
-          <p>Mode: <span className="text-foreground font-medium">{selectedT.mode}</span></p>
-          <p>Team size: <span className="text-foreground font-medium">{teamSize}</span></p>
-          <p>Teams per lobby: <span className="text-foreground font-medium">{teamsPerLobby}</span></p>
-          <p>Max players per lobby: <span className="text-foreground font-medium">{LOBBY_CAPACITY}</span></p>
+          <p>Modo: <span className="text-foreground font-medium">{selectedT.mode}</span></p>
+          <p>Tamaño de equipo: <span className="text-foreground font-medium">{teamSize}</span></p>
+          <p>Equipos por lobby: <span className="text-foreground font-medium">{teamsPerLobby}</span></p>
+          <p>Máx. jugadores por lobby: <span className="text-foreground font-medium">{LOBBY_CAPACITY}</span></p>
         </div>
       )}
 
       {lobbies.length > 0 && (
         <>
           <div className="flex items-center justify-between">
-            <p className="text-sm text-muted-foreground">{lobbies.length} lobby(s) generated</p>
+            <p className="text-sm text-muted-foreground">{lobbies.length} lobby(s) generados</p>
             <Button variant="outline" size="sm" onClick={exportAllLobbies}>
-              <Download className="h-4 w-4 mr-1" /> Export All Lobbies
+              <Download className="h-4 w-4 mr-1" /> Exportar Todos
             </Button>
           </div>
 
@@ -122,7 +127,7 @@ export default function AdminLobbyGenerator() {
                 <div className="flex items-center justify-between p-4 border-b border-border">
                   <div className="flex items-center gap-3">
                     <Badge className="bg-primary/20 text-primary border-primary/30">Lobby {lobby.number}</Badge>
-                    <span className="text-sm text-muted-foreground">{lobby.playerCount} players · {lobby.teams.length} teams</span>
+                    <span className="text-sm text-muted-foreground">{lobby.playerCount} jugadores · {lobby.teams.length} equipos</span>
                   </div>
                   <Button variant="ghost" size="sm" onClick={() => exportLobby(lobby)}>
                     <Download className="h-4 w-4 mr-1" /> CSV
@@ -131,7 +136,7 @@ export default function AdminLobbyGenerator() {
                 <div className="p-4 space-y-4">
                   {lobby.teams.map((team) => (
                     <div key={team.teamName}>
-                      <p className="text-sm font-semibold text-primary mb-1">Team: {team.teamName}</p>
+                      <p className="text-sm font-semibold text-primary mb-1">Equipo: {team.teamName}</p>
                       <div className="pl-4 space-y-0.5">
                         {team.players.map((p) => (
                           <p key={p.playerId} className="text-sm text-foreground">
@@ -147,6 +152,10 @@ export default function AdminLobbyGenerator() {
             ))}
           </div>
         </>
+      )}
+
+      {lobbies.length === 0 && selectedTournament && (
+        <p className="text-center text-muted-foreground py-8">Selecciona un torneo y genera los lobbies.</p>
       )}
     </div>
   );

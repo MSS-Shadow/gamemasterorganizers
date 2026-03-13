@@ -1,38 +1,75 @@
+import { useState, useEffect } from "react";
 import { Download, Database } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { mockPlayers, mockTournamentRegs, mockScrimParticipants, mockCreatorRequests, mockActivityLog } from "@/lib/mockAdminData";
+import { supabase } from "@/integrations/supabase/client";
 import { exportToCsv } from "@/lib/exportCsv";
 
-const tables = [
-  { name: "Players", count: mockPlayers.length, exportFn: () => exportToCsv("backup_players", ["Nickname","PlayerID","Platform","Team","Country","Email","Role","Verified"], mockPlayers.map(p => [p.nickname,p.playerId,p.platform,p.team,p.country,p.email,p.role,p.verified?"Yes":"No"])) },
-  { name: "Tournament Registrations", count: mockTournamentRegs.length, exportFn: () => exportToCsv("backup_tournament_regs", ["Tournament","Team","Nickname","PlayerID","Platform","Date"], mockTournamentRegs.map(r => [r.tournamentName,r.teamName,r.playerNickname,r.playerId,r.platform,r.registrationDate])) },
-  { name: "Scrim Participants", count: mockScrimParticipants.length, exportFn: () => exportToCsv("backup_scrim_participants", ["Scrim","Streamer","Nickname","PlayerID","Team","Platform","JoinTime"], mockScrimParticipants.map(s => [s.scrimTitle,s.streamer,s.playerNickname,s.playerId,s.team,s.platform,s.joinTime])) },
-  { name: "Content Creators", count: mockCreatorRequests.length, exportFn: () => exportToCsv("backup_creators", ["Nickname","Email","Platform","Channel","Status"], mockCreatorRequests.map(c => [c.nickname,c.email,c.platform,c.channelLink,c.status])) },
-  { name: "Activity Log", count: mockActivityLog.length, exportFn: () => exportToCsv("backup_activity_log", ["Action","Detail","Admin","Timestamp"], mockActivityLog.map(l => [l.action,l.detail,l.admin,l.timestamp])) },
-];
-
-const exportAllJson = () => {
-  const data = { players: mockPlayers, tournamentRegs: mockTournamentRegs, scrimParticipants: mockScrimParticipants, creators: mockCreatorRequests, activityLog: mockActivityLog };
-  const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = "full_backup.json";
-  link.click();
-  URL.revokeObjectURL(url);
-};
+interface TableInfo {
+  name: string;
+  count: number;
+  exportFn: () => void;
+}
 
 export default function AdminBackup() {
+  const [tables, setTables] = useState<TableInfo[]>([]);
+  const [allData, setAllData] = useState<any>({});
+
+  useEffect(() => {
+    const fetch = async () => {
+      const [profiles, tournaments, regs, scrims, scrimParts, creators, modLogs] = await Promise.all([
+        supabase.from("profiles").select("*"),
+        supabase.from("tournaments").select("*"),
+        supabase.from("tournament_registrations").select("*"),
+        supabase.from("scrims").select("*"),
+        supabase.from("scrim_participants").select("*"),
+        supabase.from("creator_requests").select("*"),
+        supabase.from("moderation_logs").select("*"),
+      ]);
+
+      const data = {
+        profiles: profiles.data ?? [],
+        tournaments: tournaments.data ?? [],
+        tournament_registrations: regs.data ?? [],
+        scrims: scrims.data ?? [],
+        scrim_participants: scrimParts.data ?? [],
+        creator_requests: creators.data ?? [],
+        moderation_logs: modLogs.data ?? [],
+      };
+      setAllData(data);
+
+      setTables([
+        { name: "Jugadores", count: data.profiles.length, exportFn: () => exportToCsv("backup_jugadores", ["Nickname", "Player ID", "Plataforma", "Clan", "País", "Email", "Verificado"], data.profiles.map((p: any) => [p.nickname, p.player_id, p.platform, p.clan, p.country, p.email, p.verified ? "Sí" : "No"])) },
+        { name: "Torneos", count: data.tournaments.length, exportFn: () => exportToCsv("backup_torneos", ["Nombre", "Modo", "Fecha", "Estado", "Máx. Jugadores"], data.tournaments.map((t: any) => [t.name, t.mode, t.date, t.status, t.max_players])) },
+        { name: "Inscripciones", count: data.tournament_registrations.length, exportFn: () => exportToCsv("backup_inscripciones", ["Torneo ID", "Equipo", "Nickname", "Player ID", "Plataforma"], data.tournament_registrations.map((r: any) => [r.tournament_id, r.tournament_team_name, r.nickname, r.player_id, r.platform])) },
+        { name: "Scrims", count: data.scrims.length, exportFn: () => exportToCsv("backup_scrims", ["Título", "Modo", "Fecha", "Estado", "Organizador"], data.scrims.map((s: any) => [s.title, s.mode, s.date, s.status, s.creator_nickname])) },
+        { name: "Participantes Scrims", count: data.scrim_participants.length, exportFn: () => exportToCsv("backup_participantes_scrims", ["Scrim ID", "Nickname", "Player ID", "Equipo", "Plataforma"], data.scrim_participants.map((p: any) => [p.scrim_id, p.nickname, p.player_id, p.team, p.platform])) },
+        { name: "Solicitudes Creadores", count: data.creator_requests.length, exportFn: () => exportToCsv("backup_creadores", ["Nickname", "Email", "Plataforma", "Canal", "Estado"], data.creator_requests.map((c: any) => [c.nickname, c.email, c.platform, c.channel_link, c.status])) },
+        { name: "Log de Moderación", count: data.moderation_logs.length, exportFn: () => exportToCsv("backup_moderacion", ["Acción", "Objetivo", "Razón", "Admin", "Fecha"], data.moderation_logs.map((l: any) => [l.action, l.target_nickname, l.reason, l.admin_nickname, l.created_at])) },
+      ]);
+    };
+    fetch();
+  }, []);
+
+  const exportAllJson = () => {
+    const blob = new Blob([JSON.stringify(allData, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "backup_completo.json";
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h2 className="text-2xl font-bold text-foreground">Backup</h2>
-          <p className="text-sm text-muted-foreground">Download backups of all platform data.</p>
+          <h2 className="text-2xl font-bold text-foreground">Respaldo</h2>
+          <p className="text-sm text-muted-foreground">Descarga respaldos de todos los datos de la plataforma.</p>
         </div>
         <Button onClick={exportAllJson}>
-          <Database className="h-4 w-4 mr-1" /> Download Full Backup (JSON)
+          <Database className="h-4 w-4 mr-1" /> Descargar Respaldo Completo (JSON)
         </Button>
       </div>
 
@@ -42,20 +79,13 @@ export default function AdminBackup() {
             <div className="flex items-center gap-3">
               <Database className="h-4 w-4 text-muted-foreground" />
               <span className="text-foreground font-medium">{t.name}</span>
-              <Badge variant="outline" className="text-xs">{t.count} records</Badge>
+              <Badge variant="outline" className="text-xs">{t.count} registros</Badge>
             </div>
             <Button variant="outline" size="sm" onClick={t.exportFn}>
               <Download className="h-4 w-4 mr-1" /> CSV
             </Button>
           </div>
         ))}
-      </div>
-
-      <div className="bg-card border border-border rounded-lg p-5">
-        <h3 className="font-semibold text-foreground mb-2">Automatic Backups</h3>
-        <p className="text-sm text-muted-foreground">
-          Automatic daily backups will be available once Lovable Cloud is enabled. This will include scheduled snapshots of all tables: Players, Teams, Tournaments, TournamentRegistrations, Scrims, ScrimParticipants, Creators, and HallOfFame.
-        </p>
       </div>
     </div>
   );

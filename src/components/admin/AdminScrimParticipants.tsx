@@ -1,53 +1,111 @@
-import { Download } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Download, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
-import { mockScrimParticipants } from "@/lib/mockAdminData";
+import { supabase } from "@/integrations/supabase/client";
 import { exportToCsv } from "@/lib/exportCsv";
+import { toast } from "sonner";
+
+interface ScrimParticipant {
+  id: string;
+  scrim_id: string;
+  scrim_title: string;
+  creator_nickname: string;
+  nickname: string;
+  player_id: string;
+  team: string;
+  platform: string;
+  joined_at: string;
+}
 
 export default function AdminScrimParticipants() {
+  const [participants, setParticipants] = useState<ScrimParticipant[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const fetchData = async () => {
+    setLoading(true);
+    const { data: scrims } = await supabase.from("scrims").select("id, title, creator_nickname");
+    const { data: parts } = await supabase.from("scrim_participants").select("*").order("joined_at", { ascending: false });
+
+    if (scrims && parts) {
+      const scrimMap = new Map(scrims.map((s: any) => [s.id, s]));
+      const mapped: ScrimParticipant[] = parts.map((p: any) => {
+        const scrim = scrimMap.get(p.scrim_id) as any;
+        return {
+          ...p,
+          scrim_title: scrim?.title ?? "Desconocido",
+          creator_nickname: scrim?.creator_nickname ?? "—",
+        };
+      });
+      setParticipants(mapped);
+    }
+    setLoading(false);
+  };
+
+  useEffect(() => { fetchData(); }, []);
+
   const handleExport = () => {
-    exportToCsv("scrim_participants", ["Scrim", "Streamer", "Nickname", "Player ID", "Team", "Platform", "Join Time"],
-      mockScrimParticipants.map((s) => [s.scrimTitle, s.streamer, s.playerNickname, s.playerId, s.team, s.platform, s.joinTime])
+    exportToCsv("participantes_scrims", ["Scrim", "Organizador", "Nickname", "Player ID", "Equipo", "Plataforma", "Hora"],
+      participants.map((s) => [s.scrim_title, s.creator_nickname, s.nickname, s.player_id, s.team, s.platform, new Date(s.joined_at).toLocaleString("es")])
     );
   };
+
+  const deleteParticipant = async (id: string) => {
+    const { error } = await supabase.from("scrim_participants").delete().eq("id", id);
+    if (error) { toast.error(error.message); return; }
+    toast.success("Participante eliminado");
+    fetchData();
+  };
+
+  if (loading) return <div className="text-center py-8 text-muted-foreground">Cargando participantes...</div>;
 
   return (
     <div className="space-y-4">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <h2 className="text-2xl font-bold text-foreground">Scrim Participants</h2>
+        <h2 className="text-2xl font-bold text-foreground">Participantes de Scrims</h2>
         <Button variant="outline" size="sm" onClick={handleExport}>
-          <Download className="h-4 w-4 mr-1" /> Export to CSV
+          <Download className="h-4 w-4 mr-1" /> Exportar CSV
         </Button>
       </div>
-      <div className="border border-border rounded-lg overflow-hidden">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Scrim</TableHead>
-              <TableHead className="hidden md:table-cell">Streamer</TableHead>
-              <TableHead>Nickname</TableHead>
-              <TableHead className="hidden md:table-cell">Player ID</TableHead>
-              <TableHead className="hidden lg:table-cell">Team</TableHead>
-              <TableHead className="hidden md:table-cell">Platform</TableHead>
-              <TableHead>Join Time</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {mockScrimParticipants.map((s) => (
-              <TableRow key={s.id}>
-                <TableCell className="text-foreground font-medium">{s.scrimTitle}</TableCell>
-                <TableCell className="hidden md:table-cell text-muted-foreground">{s.streamer}</TableCell>
-                <TableCell className="text-foreground">{s.playerNickname}</TableCell>
-                <TableCell className="hidden md:table-cell text-muted-foreground font-mono text-xs">{s.playerId}</TableCell>
-                <TableCell className="hidden lg:table-cell text-muted-foreground">{s.team}</TableCell>
-                <TableCell className="hidden md:table-cell"><Badge variant="outline">{s.platform}</Badge></TableCell>
-                <TableCell className="text-muted-foreground text-xs">{s.joinTime}</TableCell>
+      {participants.length === 0 ? (
+        <p className="text-center text-muted-foreground py-8">No hay participantes de scrims.</p>
+      ) : (
+        <div className="border border-border rounded-lg overflow-hidden">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Scrim</TableHead>
+                <TableHead className="hidden md:table-cell">Organizador</TableHead>
+                <TableHead>Nickname</TableHead>
+                <TableHead className="hidden md:table-cell">Player ID</TableHead>
+                <TableHead className="hidden lg:table-cell">Equipo</TableHead>
+                <TableHead className="hidden md:table-cell">Plataforma</TableHead>
+                <TableHead>Hora</TableHead>
+                <TableHead className="text-right">Acciones</TableHead>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </div>
+            </TableHeader>
+            <TableBody>
+              {participants.map((s) => (
+                <TableRow key={s.id}>
+                  <TableCell className="text-foreground font-medium">{s.scrim_title}</TableCell>
+                  <TableCell className="hidden md:table-cell text-muted-foreground">{s.creator_nickname}</TableCell>
+                  <TableCell className="text-foreground">{s.nickname}</TableCell>
+                  <TableCell className="hidden md:table-cell text-muted-foreground font-mono text-xs">{s.player_id}</TableCell>
+                  <TableCell className="hidden lg:table-cell text-muted-foreground">{s.team}</TableCell>
+                  <TableCell className="hidden md:table-cell"><Badge variant="outline">{s.platform}</Badge></TableCell>
+                  <TableCell className="text-muted-foreground text-xs">{new Date(s.joined_at).toLocaleString("es", { hour: "2-digit", minute: "2-digit" })}</TableCell>
+                  <TableCell className="text-right">
+                    <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => deleteParticipant(s.id)} title="Eliminar">
+                      <Trash2 className="h-4 w-4 text-destructive" />
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+      )}
     </div>
   );
 }
