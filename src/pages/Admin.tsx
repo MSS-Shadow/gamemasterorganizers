@@ -69,6 +69,7 @@ export default function AdminPage() {
         <TabsContent value="scrims"><AdminScrimParticipants /></TabsContent>
         <TabsContent value="lobbies"><AdminLobbyGenerator /></TabsContent>
         <TabsContent value="roles"><AdminRoleManager /></TabsContent>
+        <TabsContent value="moderation"><AdminModerationLog /></TabsContent>
         <TabsContent value="activity"><AdminActivityLog /></TabsContent>
         <TabsContent value="backup"><AdminBackup /></TabsContent>
       </Tabs>

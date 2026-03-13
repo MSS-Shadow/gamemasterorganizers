@@ -37,6 +37,25 @@ export default function TournamentRegisterDialog({ open, onClose, tournament }: 
     );
   }
 
+  const profileStatus = (profile as any).status as string | undefined;
+  if (profileStatus === "suspended" || profileStatus === "banned") {
+    return (
+      <Dialog open={open} onOpenChange={onClose}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Cuenta {profileStatus === "banned" ? "Baneada" : "Suspendida"}</DialogTitle>
+            <DialogDescription>
+              {profileStatus === "banned"
+                ? "Tu cuenta ha sido baneada. No puedes inscribirte en torneos."
+                : "Tu cuenta está suspendida temporalmente. No puedes inscribirte en torneos."}
+            </DialogDescription>
+          </DialogHeader>
+          <Button variant="outline" onClick={onClose}>Cerrar</Button>
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
   const needsTeam = tournament.mode !== "Solo";
 
   const handleRegister = async () => {
