@@ -4,19 +4,19 @@ export default function AboutPage() {
   return (
     <div className="space-y-8 max-w-3xl">
       <div>
-        <h1 className="text-3xl font-bold text-foreground mb-2">About Game Master Organizers</h1>
+        <h1 className="text-3xl font-bold text-foreground mb-2">Acerca de Game Master Organizers</h1>
         <p className="text-muted-foreground leading-relaxed">
-          Game Master Organizers is the official competitive community hub for BloodStrike. 
-          We organize tournaments, scrims, and maintain rankings for the growing competitive scene.
+          Game Master Organizers es el centro oficial de la comunidad competitiva de BloodStrike.
+          Organizamos torneos, scrims y mantenemos rankings para la creciente escena competitiva.
         </p>
       </div>
 
       <div className="grid sm:grid-cols-2 gap-4">
         {[
-          { icon: Trophy, title: "Tournaments", desc: "Regular Solo, Duo, Trio, and Squad tournaments with full rankings." },
-          { icon: Swords, title: "Scrims", desc: "Practice matches organized by verified creators and admins." },
-          { icon: Users, title: "Community", desc: "A growing community of competitive BloodStrike players." },
-          { icon: Target, title: "Rankings", desc: "Championship-based ranking system across all game modes." },
+          { icon: Trophy, title: "Torneos", desc: "Torneos regulares en modo Solo, Duo, Trio y Squad con rankings completos." },
+          { icon: Swords, title: "Scrims", desc: "Partidas de práctica organizadas por creadores verificados y administradores." },
+          { icon: Users, title: "Comunidad", desc: "Una comunidad creciente de jugadores competitivos de BloodStrike." },
+          { icon: Target, title: "Rankings", desc: "Sistema de clasificación basado en campeonatos ganados en todos los modos." },
         ].map((item, i) => (
           <div key={i} className="bg-card border border-border rounded-lg p-5">
             <div className="flex items-center gap-2 mb-2">
@@ -29,10 +29,10 @@ export default function AboutPage() {
       </div>
 
       <div className="bg-card border border-border rounded-lg p-6">
-        <h2 className="text-xl font-semibold text-foreground mb-3">Our Mission</h2>
+        <h2 className="text-xl font-semibold text-foreground mb-3">Nuestra Misión</h2>
         <p className="text-muted-foreground leading-relaxed">
-          To build a competitive platform that gives every BloodStrike player a home — 
-          from casual competitors to serious teams. Every match matters. Every player's history counts.
+          Construir una plataforma competitiva que le dé un hogar a cada jugador de BloodStrike —
+          desde competidores casuales hasta equipos serios. Cada partida importa. La historia de cada jugador cuenta.
         </p>
       </div>
     </div>
