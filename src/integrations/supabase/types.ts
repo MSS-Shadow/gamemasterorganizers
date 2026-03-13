@@ -14,6 +14,42 @@ export type Database = {
   }
   public: {
     Tables: {
+      moderation_logs: {
+        Row: {
+          action: string
+          admin_nickname: string
+          admin_user_id: string
+          created_at: string
+          detail: string | null
+          id: string
+          reason: string
+          target_nickname: string
+          target_user_id: string | null
+        }
+        Insert: {
+          action: string
+          admin_nickname: string
+          admin_user_id: string
+          created_at?: string
+          detail?: string | null
+          id?: string
+          reason: string
+          target_nickname: string
+          target_user_id?: string | null
+        }
+        Update: {
+          action?: string
+          admin_nickname?: string
+          admin_user_id?: string
+          created_at?: string
+          detail?: string | null
+          id?: string
+          reason?: string
+          target_nickname?: string
+          target_user_id?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           clan: string
@@ -24,6 +60,7 @@ export type Database = {
           nickname: string
           platform: string
           player_id: string
+          status: string
           updated_at: string
           user_id: string
           verified: boolean
@@ -37,6 +74,7 @@ export type Database = {
           nickname: string
           platform: string
           player_id: string
+          status?: string
           updated_at?: string
           user_id: string
           verified?: boolean
@@ -50,6 +88,7 @@ export type Database = {
           nickname?: string
           platform?: string
           player_id?: string
+          status?: string
           updated_at?: string
           user_id?: string
           verified?: boolean
