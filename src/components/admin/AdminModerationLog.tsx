@@ -42,23 +42,23 @@ export default function AdminModerationLog() {
 
   return (
     <div className="space-y-4">
-      <h2 className="text-2xl font-bold text-foreground">Admin Moderation Log</h2>
+      <h2 className="text-2xl font-bold text-foreground">Log de Moderación</h2>
       {logs.length === 0 ? (
-        <p className="text-muted-foreground text-center py-8">No moderation actions recorded yet.</p>
+        <p className="text-muted-foreground text-center py-8">No se han registrado acciones de moderación aún.</p>
       ) : (
         <div className="border border-border rounded-lg overflow-hidden">
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Action</TableHead>
-                <TableHead>Target</TableHead>
-                <TableHead>Reason</TableHead>
-                <TableHead className="hidden md:table-cell">Detail</TableHead>
+                <TableHead>Acción</TableHead>
+                <TableHead>Objetivo</TableHead>
+                <TableHead>Razón</TableHead>
+                <TableHead className="hidden md:table-cell">Detalle</TableHead>
                 <TableHead className="hidden md:table-cell">Admin</TableHead>
-                <TableHead>Date</TableHead>
+                <TableHead>Fecha</TableHead>
               </TableRow>
             </TableHeader>
-            <tbody>
+            <TableBody>
               {logs.map((log) => (
                 <TableRow key={log.id}>
                   <TableCell><Badge className={actionColor(log.action)}>{log.action}</Badge></TableCell>
@@ -67,11 +67,11 @@ export default function AdminModerationLog() {
                   <TableCell className="hidden md:table-cell text-muted-foreground text-xs">{log.detail || "—"}</TableCell>
                   <TableCell className="hidden md:table-cell text-muted-foreground text-sm">{log.admin_nickname}</TableCell>
                   <TableCell className="text-muted-foreground text-xs whitespace-nowrap">
-                    {new Date(log.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric", hour: "2-digit", minute: "2-digit" })}
+                    {new Date(log.created_at).toLocaleDateString("es", { month: "short", day: "numeric", year: "numeric", hour: "2-digit", minute: "2-digit" })}
                   </TableCell>
                 </TableRow>
               ))}
-            </tbody>
+            </TableBody>
           </Table>
         </div>
       )}
