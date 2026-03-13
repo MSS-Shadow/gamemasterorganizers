@@ -14,6 +14,42 @@ export type Database = {
   }
   public: {
     Tables: {
+      creator_requests: {
+        Row: {
+          channel_link: string
+          created_at: string
+          email: string
+          id: string
+          nickname: string
+          platform: string
+          reviewed_at: string | null
+          status: string
+          user_id: string
+        }
+        Insert: {
+          channel_link: string
+          created_at?: string
+          email: string
+          id?: string
+          nickname: string
+          platform: string
+          reviewed_at?: string | null
+          status?: string
+          user_id: string
+        }
+        Update: {
+          channel_link?: string
+          created_at?: string
+          email?: string
+          id?: string
+          nickname?: string
+          platform?: string
+          reviewed_at?: string | null
+          status?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       moderation_logs: {
         Row: {
           action: string
@@ -92,6 +128,86 @@ export type Database = {
           updated_at?: string
           user_id?: string
           verified?: boolean
+        }
+        Relationships: []
+      }
+      scrim_participants: {
+        Row: {
+          id: string
+          joined_at: string
+          nickname: string
+          platform: string
+          player_id: string
+          scrim_id: string
+          team: string
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          joined_at?: string
+          nickname: string
+          platform: string
+          player_id: string
+          scrim_id: string
+          team: string
+          user_id: string
+        }
+        Update: {
+          id?: string
+          joined_at?: string
+          nickname?: string
+          platform?: string
+          player_id?: string
+          scrim_id?: string
+          team?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "scrim_participants_scrim_id_fkey"
+            columns: ["scrim_id"]
+            isOneToOne: false
+            referencedRelation: "scrims"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      scrims: {
+        Row: {
+          created_at: string
+          created_by: string
+          creator_nickname: string
+          date: string
+          id: string
+          max_players: number
+          mode: string
+          status: string
+          stream_link: string | null
+          title: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          creator_nickname: string
+          date: string
+          id?: string
+          max_players?: number
+          mode: string
+          status?: string
+          stream_link?: string | null
+          title: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          creator_nickname?: string
+          date?: string
+          id?: string
+          max_players?: number
+          mode?: string
+          status?: string
+          stream_link?: string | null
+          title?: string
         }
         Relationships: []
       }
