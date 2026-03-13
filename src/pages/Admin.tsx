@@ -57,6 +57,7 @@ export default function AdminPage() {
           <TabsTrigger value="scrims" className="text-xs">Scrims</TabsTrigger>
           <TabsTrigger value="lobbies" className="text-xs">Lobby Generator</TabsTrigger>
           <TabsTrigger value="roles" className="text-xs">Role Manager</TabsTrigger>
+          <TabsTrigger value="moderation" className="text-xs">Moderation Log</TabsTrigger>
           <TabsTrigger value="activity" className="text-xs">Activity Log</TabsTrigger>
           <TabsTrigger value="backup" className="text-xs">Backup</TabsTrigger>
         </TabsList>
