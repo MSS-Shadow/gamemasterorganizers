@@ -12,6 +12,7 @@ interface AuthContextType {
   roles: string[];
   loading: boolean;
   isAdmin: boolean;
+  isClanLeader: boolean;
   signOut: () => Promise<void>;
   refreshProfile: () => Promise<void>;
 }
