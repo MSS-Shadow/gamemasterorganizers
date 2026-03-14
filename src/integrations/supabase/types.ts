@@ -14,6 +14,148 @@ export type Database = {
   }
   public: {
     Tables: {
+      bracket_matches: {
+        Row: {
+          created_at: string
+          id: string
+          match_number: number
+          round: number
+          status: string
+          team1_name: string | null
+          team2_name: string | null
+          tournament_id: string
+          winner_name: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          match_number: number
+          round: number
+          status?: string
+          team1_name?: string | null
+          team2_name?: string | null
+          tournament_id: string
+          winner_name?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          match_number?: number
+          round?: number
+          status?: string
+          team1_name?: string | null
+          team2_name?: string | null
+          tournament_id?: string
+          winner_name?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bracket_matches_tournament_id_fkey"
+            columns: ["tournament_id"]
+            isOneToOne: false
+            referencedRelation: "tournaments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      clan_leader_requests: {
+        Row: {
+          clan_name: string
+          created_at: string
+          description: string | null
+          email: string
+          id: string
+          nickname: string
+          player_id: string
+          reviewed_at: string | null
+          status: string
+          user_id: string
+        }
+        Insert: {
+          clan_name: string
+          created_at?: string
+          description?: string | null
+          email: string
+          id?: string
+          nickname: string
+          player_id: string
+          reviewed_at?: string | null
+          status?: string
+          user_id: string
+        }
+        Update: {
+          clan_name?: string
+          created_at?: string
+          description?: string | null
+          email?: string
+          id?: string
+          nickname?: string
+          player_id?: string
+          reviewed_at?: string | null
+          status?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      clan_members: {
+        Row: {
+          clan_id: string
+          id: string
+          joined_at: string
+          nickname: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          clan_id: string
+          id?: string
+          joined_at?: string
+          nickname: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          clan_id?: string
+          id?: string
+          joined_at?: string
+          nickname?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clan_members_clan_id_fkey"
+            columns: ["clan_id"]
+            isOneToOne: false
+            referencedRelation: "clans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      clans: {
+        Row: {
+          created_at: string
+          id: string
+          leader_nickname: string
+          leader_user_id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          leader_nickname: string
+          leader_user_id: string
+          name: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          leader_nickname?: string
+          leader_user_id?: string
+          name?: string
+        }
+        Relationships: []
+      }
       creator_requests: {
         Row: {
           channel_link: string
@@ -211,6 +353,44 @@ export type Database = {
         }
         Relationships: []
       }
+      tournament_champions: {
+        Row: {
+          created_at: string
+          date: string
+          id: string
+          mode: string
+          team_name: string
+          tournament_id: string
+          tournament_name: string
+        }
+        Insert: {
+          created_at?: string
+          date: string
+          id?: string
+          mode: string
+          team_name: string
+          tournament_id: string
+          tournament_name: string
+        }
+        Update: {
+          created_at?: string
+          date?: string
+          id?: string
+          mode?: string
+          team_name?: string
+          tournament_id?: string
+          tournament_name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tournament_champions_tournament_id_fkey"
+            columns: ["tournament_id"]
+            isOneToOne: false
+            referencedRelation: "tournaments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tournament_registrations: {
         Row: {
           clan: string
@@ -255,10 +435,58 @@ export type Database = {
           },
         ]
       }
+      tournament_waiting_list: {
+        Row: {
+          clan: string
+          created_at: string
+          id: string
+          nickname: string
+          platform: string
+          player_id: string
+          position: number
+          tournament_id: string
+          tournament_team_name: string
+          user_id: string
+        }
+        Insert: {
+          clan?: string
+          created_at?: string
+          id?: string
+          nickname: string
+          platform: string
+          player_id: string
+          position?: number
+          tournament_id: string
+          tournament_team_name?: string
+          user_id: string
+        }
+        Update: {
+          clan?: string
+          created_at?: string
+          id?: string
+          nickname?: string
+          platform?: string
+          player_id?: string
+          position?: number
+          tournament_id?: string
+          tournament_team_name?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tournament_waiting_list_tournament_id_fkey"
+            columns: ["tournament_id"]
+            isOneToOne: false
+            referencedRelation: "tournaments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tournaments: {
         Row: {
           created_at: string
           date: string
+          format: string
           id: string
           max_players: number
           mode: string
@@ -269,6 +497,7 @@ export type Database = {
         Insert: {
           created_at?: string
           date: string
+          format?: string
           id?: string
           max_players?: number
           mode: string
@@ -279,6 +508,7 @@ export type Database = {
         Update: {
           created_at?: string
           date?: string
+          format?: string
           id?: string
           max_players?: number
           mode?: string
@@ -320,7 +550,7 @@ export type Database = {
       }
     }
     Enums: {
-      app_role: "player" | "content_creator" | "admin"
+      app_role: "player" | "content_creator" | "admin" | "clan_leader"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -448,7 +678,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["player", "content_creator", "admin"],
+      app_role: ["player", "content_creator", "admin", "clan_leader"],
     },
   },
 } as const
