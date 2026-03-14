@@ -9,10 +9,12 @@ import AdminCreators from "@/components/admin/AdminCreators";
 import AdminTournamentRegistrations from "@/components/admin/AdminTournamentRegistrations";
 import AdminScrimParticipants from "@/components/admin/AdminScrimParticipants";
 import AdminLobbyGenerator from "@/components/admin/AdminLobbyGenerator";
-import AdminActivityLog from "@/components/admin/AdminActivityLog";
 import AdminModerationLog from "@/components/admin/AdminModerationLog";
 import AdminBackup from "@/components/admin/AdminBackup";
 import AdminRoleManager from "@/components/admin/AdminRoleManager";
+import AdminClanLeaderRequests from "@/components/admin/AdminClanLeaderRequests";
+import AdminBracketManager from "@/components/admin/AdminBracketManager";
+import AdminSmurfDetection from "@/components/admin/AdminSmurfDetection";
 
 export default function AdminPage() {
   const [globalSearch, setGlobalSearch] = useState("");
@@ -53,10 +55,13 @@ export default function AdminPage() {
           <TabsTrigger value="dashboard" className="text-xs">Panel</TabsTrigger>
           <TabsTrigger value="players" className="text-xs">Jugadores</TabsTrigger>
           <TabsTrigger value="creators" className="text-xs">Creadores</TabsTrigger>
+          <TabsTrigger value="clan-leaders" className="text-xs">Líderes Clan</TabsTrigger>
           <TabsTrigger value="tournaments" className="text-xs">Torneos</TabsTrigger>
+          <TabsTrigger value="brackets" className="text-xs">Brackets</TabsTrigger>
           <TabsTrigger value="scrims" className="text-xs">Scrims</TabsTrigger>
           <TabsTrigger value="lobbies" className="text-xs">Lobbies</TabsTrigger>
           <TabsTrigger value="roles" className="text-xs">Roles</TabsTrigger>
+          <TabsTrigger value="smurf" className="text-xs">Anti-Smurf</TabsTrigger>
           <TabsTrigger value="moderation" className="text-xs">Moderación</TabsTrigger>
           <TabsTrigger value="backup" className="text-xs">Respaldo</TabsTrigger>
         </TabsList>
@@ -64,10 +69,13 @@ export default function AdminPage() {
         <TabsContent value="dashboard"><AdminDashboard /></TabsContent>
         <TabsContent value="players"><AdminPlayers /></TabsContent>
         <TabsContent value="creators"><AdminCreators /></TabsContent>
+        <TabsContent value="clan-leaders"><AdminClanLeaderRequests /></TabsContent>
         <TabsContent value="tournaments"><AdminTournamentRegistrations /></TabsContent>
+        <TabsContent value="brackets"><AdminBracketManager /></TabsContent>
         <TabsContent value="scrims"><AdminScrimParticipants /></TabsContent>
         <TabsContent value="lobbies"><AdminLobbyGenerator /></TabsContent>
         <TabsContent value="roles"><AdminRoleManager /></TabsContent>
+        <TabsContent value="smurf"><AdminSmurfDetection /></TabsContent>
         <TabsContent value="moderation"><AdminModerationLog /></TabsContent>
         <TabsContent value="backup"><AdminBackup /></TabsContent>
       </Tabs>
