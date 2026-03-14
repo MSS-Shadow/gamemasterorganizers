@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Trophy } from "lucide-react";
+import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import LobbyProgress from "@/components/LobbyProgress";
 import TournamentRegisterDialog from "@/components/TournamentRegisterDialog";
@@ -12,8 +13,11 @@ export default function TournamentsPage() {
   const [regCounts, setRegCounts] = useState<Record<string, number>>({});
   const [selectedTournament, setSelectedTournament] = useState<Tournament | null>(null);
   const [filterMode, setFilterMode] = useState("Todos");
+  const [filterStatus, setFilterStatus] = useState("Todos");
 
   const modes = ["Todos", "Solo", "Duo", "Trio", "Squad"];
+  const statuses = ["Todos", "Open", "Closed", "In Progress", "Finished"];
+  const statusLabel: Record<string, string> = { Open: "Abierto", Closed: "Cerrado", "In Progress": "En Progreso", Finished: "Finalizado" };
 
   useEffect(() => {
     const fetch = async () => {
@@ -31,7 +35,8 @@ export default function TournamentsPage() {
     fetch();
   }, [selectedTournament]);
 
-  const filtered = filterMode === "Todos" ? tournaments : tournaments.filter((t) => t.mode === filterMode);
+  let filtered = filterMode === "Todos" ? tournaments : tournaments.filter((t) => t.mode === filterMode);
+  if (filterStatus !== "Todos") filtered = filtered.filter((t) => t.status === filterStatus);
 
   return (
     <div className="space-y-6">
@@ -50,6 +55,16 @@ export default function TournamentsPage() {
           </button>
         ))}
       </div>
+      <div className="flex gap-2 flex-wrap">
+        {statuses.map((s) => (
+          <button key={s} onClick={() => setFilterStatus(s)}
+            className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
+              filterStatus === s ? "bg-accent text-accent-foreground" : "bg-card text-muted-foreground border border-border hover:text-foreground"
+            }`}>
+            {statusLabel[s] || s}
+          </button>
+        ))}
+      </div>
 
       <div className="space-y-4">
         {filtered.length === 0 && (
@@ -60,7 +75,7 @@ export default function TournamentsPage() {
           return (
             <div key={t.id} className="bg-card border border-border rounded-lg p-5">
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-3">
-                <div className="flex items-center gap-3">
+                <Link to={`/tournaments/${t.id}`} className="flex items-center gap-3 hover:opacity-80">
                   <div className="p-2 rounded-md bg-primary/10">
                     <Trophy className="h-4 w-4 text-primary" />
                   </div>
@@ -68,12 +83,12 @@ export default function TournamentsPage() {
                     <h3 className="font-semibold text-foreground">{t.name}</h3>
                     <p className="text-sm text-muted-foreground">{t.mode} · {new Date(t.date).toLocaleDateString("es")}</p>
                   </div>
-                </div>
+                </Link>
                 <div className="flex items-center gap-3">
                   <span className={`px-2.5 py-1 rounded text-xs font-medium ${
                     t.status === "Open" ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"
                   }`}>
-                    {t.status === "Open" ? "Abierto" : t.status}
+                    {statusLabel[t.status] || t.status}
                   </span>
                   {t.status === "Open" && (
                     <button onClick={() => setSelectedTournament(t)}

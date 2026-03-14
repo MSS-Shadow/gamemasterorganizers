@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { User, ShieldCheck } from "lucide-react";
+import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 
 interface Player {
@@ -14,11 +15,12 @@ interface Player {
 export default function PlayersPage() {
   const [players, setPlayers] = useState<Player[]>([]);
   const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");
 
   useEffect(() => {
     const fetch = async () => {
-      const { data: profiles } = await supabase.from("profiles").select("nickname, player_id, platform, clan, verified");
-      const { data: regs } = await supabase.from("tournament_registrations").select("user_id, nickname");
+      const { data: profiles } = await supabase.from("profiles").select("nickname, player_id, platform, clan, verified").eq("status", "active");
+      const { data: regs } = await supabase.from("tournament_registrations").select("nickname");
 
       const regCount = new Map<string, number>();
       regs?.forEach((r: any) => { regCount.set(r.nickname, (regCount.get(r.nickname) || 0) + 1); });
@@ -34,6 +36,10 @@ export default function PlayersPage() {
     fetch();
   }, []);
 
+  const filtered = search
+    ? players.filter((p) => p.nickname.toLowerCase().includes(search.toLowerCase()) || p.player_id.toLowerCase().includes(search.toLowerCase()))
+    : players;
+
   if (loading) return <div className="text-center py-20 text-muted-foreground">Cargando...</div>;
 
   return (
@@ -43,7 +49,14 @@ export default function PlayersPage() {
         <p className="text-muted-foreground">Todos los jugadores registrados en la comunidad.</p>
       </div>
 
-      {players.length > 0 ? (
+      <input
+        placeholder="Buscar jugador..."
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+        className="w-full max-w-sm px-4 py-2 rounded-md bg-card border border-border text-foreground placeholder:text-muted-foreground text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+      />
+
+      {filtered.length > 0 ? (
         <div className="bg-card border border-border rounded-lg overflow-x-auto">
           <table className="w-full text-left min-w-[600px]">
             <thead>
@@ -54,11 +67,13 @@ export default function PlayersPage() {
               </tr>
             </thead>
             <tbody>
-              {players.map((p) => (
+              {filtered.map((p) => (
                 <tr key={p.player_id} className="border-b border-border last:border-0 hover:bg-foreground/5 transition-colors">
-                  <td className="px-4 py-3 font-medium text-foreground flex items-center gap-2">
-                    <User className="h-4 w-4 text-muted-foreground" />
-                    {p.nickname}
+                  <td className="px-4 py-3 font-medium text-foreground">
+                    <Link to={`/player/${p.nickname}`} className="flex items-center gap-2 hover:text-primary">
+                      <User className="h-4 w-4 text-muted-foreground" />
+                      {p.nickname}
+                    </Link>
                   </td>
                   <td className="px-4 py-3 text-sm text-muted-foreground tabular-nums">{p.player_id}</td>
                   <td className="px-4 py-3">

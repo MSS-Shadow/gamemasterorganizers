@@ -7,14 +7,19 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import AppLayout from "@/components/AppLayout";
 import Index from "./pages/Index";
 import Tournaments from "./pages/Tournaments";
+import TournamentDetail from "./pages/TournamentDetail";
 import Rankings from "./pages/Rankings";
 import Teams from "./pages/Teams";
+import ClanPage from "./pages/ClanPage";
+import ClanLeaderRequest from "./pages/ClanLeaderRequest";
 import Players from "./pages/Players";
+import PlayerProfile from "./pages/PlayerProfile";
 import Scrims from "./pages/Scrims";
 import Upcoming from "./pages/Upcoming";
 import Results from "./pages/Results";
 import HallOfFame from "./pages/HallOfFame";
 import Creators from "./pages/Creators";
+import CreatorRequest from "./pages/CreatorRequest";
 import Activity from "./pages/Activity";
 import About from "./pages/About";
 import Rules from "./pages/Rules";
@@ -36,14 +41,19 @@ const App = () => (
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/tournaments" element={<Tournaments />} />
+              <Route path="/tournaments/:tournamentName" element={<TournamentDetail />} />
               <Route path="/rankings" element={<Rankings />} />
               <Route path="/teams" element={<Teams />} />
+              <Route path="/teams/:clanName" element={<ClanPage />} />
+              <Route path="/clan-leader-request" element={<ClanLeaderRequest />} />
               <Route path="/players" element={<Players />} />
+              <Route path="/player/:nickname" element={<PlayerProfile />} />
               <Route path="/scrims" element={<Scrims />} />
               <Route path="/upcoming" element={<Upcoming />} />
               <Route path="/results" element={<Results />} />
               <Route path="/hall-of-fame" element={<HallOfFame />} />
               <Route path="/creators" element={<Creators />} />
+              <Route path="/creator-request" element={<CreatorRequest />} />
               <Route path="/activity" element={<Activity />} />
               <Route path="/about" element={<About />} />
               <Route path="/rules" element={<Rules />} />
