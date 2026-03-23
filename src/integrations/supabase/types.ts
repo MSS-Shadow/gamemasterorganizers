@@ -14,6 +14,33 @@ export type Database = {
   }
   public: {
     Tables: {
+      announcements: {
+        Row: {
+          created_at: string
+          created_by: string
+          description: string
+          id: string
+          image_url: string | null
+          title: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          description: string
+          id?: string
+          image_url?: string | null
+          title: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          description?: string
+          id?: string
+          image_url?: string | null
+          title?: string
+        }
+        Relationships: []
+      }
       bracket_matches: {
         Row: {
           created_at: string
@@ -273,6 +300,48 @@ export type Database = {
         }
         Relationships: []
       }
+      reports: {
+        Row: {
+          admin_notes: string | null
+          category: string
+          created_at: string
+          description: string
+          id: string
+          reported_player: string
+          reporter_nickname: string
+          reporter_user_id: string
+          resolved_at: string | null
+          screenshot_url: string | null
+          status: string
+        }
+        Insert: {
+          admin_notes?: string | null
+          category: string
+          created_at?: string
+          description: string
+          id?: string
+          reported_player: string
+          reporter_nickname: string
+          reporter_user_id: string
+          resolved_at?: string | null
+          screenshot_url?: string | null
+          status?: string
+        }
+        Update: {
+          admin_notes?: string | null
+          category?: string
+          created_at?: string
+          description?: string
+          id?: string
+          reported_player?: string
+          reporter_nickname?: string
+          reporter_user_id?: string
+          resolved_at?: string | null
+          screenshot_url?: string | null
+          status?: string
+        }
+        Relationships: []
+      }
       scrim_participants: {
         Row: {
           id: string
@@ -435,6 +504,88 @@ export type Database = {
           },
         ]
       }
+      tournament_results: {
+        Row: {
+          created_at: string
+          id: string
+          kill_points: number
+          kills: number
+          multiplier_bonus: number
+          position: number
+          position_points: number
+          team_name: string
+          total_points: number
+          tournament_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          kill_points?: number
+          kills?: number
+          multiplier_bonus?: number
+          position?: number
+          position_points?: number
+          team_name: string
+          total_points?: number
+          tournament_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          kill_points?: number
+          kills?: number
+          multiplier_bonus?: number
+          position?: number
+          position_points?: number
+          team_name?: string
+          total_points?: number
+          tournament_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tournament_results_tournament_id_fkey"
+            columns: ["tournament_id"]
+            isOneToOne: false
+            referencedRelation: "tournaments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tournament_scoring_config: {
+        Row: {
+          created_at: string
+          id: string
+          kill_multiplier_by_position: Json
+          kill_value: number
+          position_values: Json
+          tournament_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          kill_multiplier_by_position?: Json
+          kill_value?: number
+          position_values?: Json
+          tournament_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          kill_multiplier_by_position?: Json
+          kill_value?: number
+          position_values?: Json
+          tournament_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tournament_scoring_config_tournament_id_fkey"
+            columns: ["tournament_id"]
+            isOneToOne: true
+            referencedRelation: "tournaments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tournament_waiting_list: {
         Row: {
           clan: string
@@ -532,6 +683,48 @@ export type Database = {
         Update: {
           id?: string
           role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
+      verification_requests: {
+        Row: {
+          additional_doc_url: string | null
+          created_at: string
+          email: string
+          id: string
+          id_screenshot_url: string | null
+          nickname: string
+          player_id: string
+          profile_screenshot_url: string | null
+          reviewed_at: string | null
+          status: string
+          user_id: string
+        }
+        Insert: {
+          additional_doc_url?: string | null
+          created_at?: string
+          email: string
+          id?: string
+          id_screenshot_url?: string | null
+          nickname: string
+          player_id: string
+          profile_screenshot_url?: string | null
+          reviewed_at?: string | null
+          status?: string
+          user_id: string
+        }
+        Update: {
+          additional_doc_url?: string | null
+          created_at?: string
+          email?: string
+          id?: string
+          id_screenshot_url?: string | null
+          nickname?: string
+          player_id?: string
+          profile_screenshot_url?: string | null
+          reviewed_at?: string | null
+          status?: string
           user_id?: string
         }
         Relationships: []
