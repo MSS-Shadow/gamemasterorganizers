@@ -7,6 +7,7 @@ import AdminDashboard from "@/components/admin/AdminDashboard";
 import AdminPlayers from "@/components/admin/AdminPlayers";
 import AdminCreators from "@/components/admin/AdminCreators";
 import AdminTournamentRegistrations from "@/components/admin/AdminTournamentRegistrations";
+import AdminTournamentScoring from "@/components/admin/AdminTournamentScoring";
 import AdminScrimParticipants from "@/components/admin/AdminScrimParticipants";
 import AdminLobbyGenerator from "@/components/admin/AdminLobbyGenerator";
 import AdminModerationLog from "@/components/admin/AdminModerationLog";
@@ -15,6 +16,9 @@ import AdminRoleManager from "@/components/admin/AdminRoleManager";
 import AdminClanLeaderRequests from "@/components/admin/AdminClanLeaderRequests";
 import AdminBracketManager from "@/components/admin/AdminBracketManager";
 import AdminSmurfDetection from "@/components/admin/AdminSmurfDetection";
+import AdminAnnouncements from "@/components/admin/AdminAnnouncements";
+import AdminReports from "@/components/admin/AdminReports";
+import AdminVerification from "@/components/admin/AdminVerification";
 
 export default function AdminPage() {
   const [globalSearch, setGlobalSearch] = useState("");
@@ -57,10 +61,14 @@ export default function AdminPage() {
           <TabsTrigger value="creators" className="text-xs">Creadores</TabsTrigger>
           <TabsTrigger value="clan-leaders" className="text-xs">Líderes Clan</TabsTrigger>
           <TabsTrigger value="tournaments" className="text-xs">Torneos</TabsTrigger>
+          <TabsTrigger value="scoring" className="text-xs">Puntuación</TabsTrigger>
           <TabsTrigger value="brackets" className="text-xs">Brackets</TabsTrigger>
           <TabsTrigger value="scrims" className="text-xs">Scrims</TabsTrigger>
           <TabsTrigger value="lobbies" className="text-xs">Lobbies</TabsTrigger>
           <TabsTrigger value="roles" className="text-xs">Roles</TabsTrigger>
+          <TabsTrigger value="verification" className="text-xs">Verificación</TabsTrigger>
+          <TabsTrigger value="reports" className="text-xs">Reportes</TabsTrigger>
+          <TabsTrigger value="announcements" className="text-xs">Anuncios</TabsTrigger>
           <TabsTrigger value="smurf" className="text-xs">Anti-Smurf</TabsTrigger>
           <TabsTrigger value="moderation" className="text-xs">Moderación</TabsTrigger>
           <TabsTrigger value="backup" className="text-xs">Respaldo</TabsTrigger>
@@ -71,10 +79,14 @@ export default function AdminPage() {
         <TabsContent value="creators"><AdminCreators /></TabsContent>
         <TabsContent value="clan-leaders"><AdminClanLeaderRequests /></TabsContent>
         <TabsContent value="tournaments"><AdminTournamentRegistrations /></TabsContent>
+        <TabsContent value="scoring"><AdminTournamentScoring /></TabsContent>
         <TabsContent value="brackets"><AdminBracketManager /></TabsContent>
         <TabsContent value="scrims"><AdminScrimParticipants /></TabsContent>
         <TabsContent value="lobbies"><AdminLobbyGenerator /></TabsContent>
         <TabsContent value="roles"><AdminRoleManager /></TabsContent>
+        <TabsContent value="verification"><AdminVerification /></TabsContent>
+        <TabsContent value="reports"><AdminReports /></TabsContent>
+        <TabsContent value="announcements"><AdminAnnouncements /></TabsContent>
         <TabsContent value="smurf"><AdminSmurfDetection /></TabsContent>
         <TabsContent value="moderation"><AdminModerationLog /></TabsContent>
         <TabsContent value="backup"><AdminBackup /></TabsContent>

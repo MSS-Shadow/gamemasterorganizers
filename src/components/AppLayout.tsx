@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   Home, Trophy, BarChart3, Users, User, Swords, CalendarDays,
   Medal, Star, TrendingUp, BookOpen, ScrollText, MessageCircle,
-  Menu, X, ChevronRight, Shield, LogIn
+  Menu, X, ChevronRight, Shield, LogIn, Megaphone
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 
