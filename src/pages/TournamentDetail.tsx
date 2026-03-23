@@ -1,18 +1,20 @@
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
-import { Trophy, ArrowLeft } from "lucide-react";
+import { Trophy, ArrowLeft, Medal } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import LobbyProgress from "@/components/LobbyProgress";
 import TournamentBracket from "@/components/TournamentBracket";
 import TournamentRegisterDialog from "@/components/TournamentRegisterDialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
 
 export default function TournamentDetail() {
   const { tournamentName } = useParams<{ tournamentName: string }>();
   const [tournament, setTournament] = useState<any>(null);
   const [regCount, setRegCount] = useState(0);
   const [regs, setRegs] = useState<any[]>([]);
+  const [results, setResults] = useState<any[]>([]);
   const [showRegister, setShowRegister] = useState(false);
   const [loading, setLoading] = useState(true);
 
@@ -24,9 +26,13 @@ export default function TournamentDetail() {
       const match = data?.find((t: any) => t.name.toLowerCase() === decoded.toLowerCase() || t.id === tournamentName);
       if (match) {
         setTournament(match);
-        const { data: regData } = await supabase.from("tournament_registrations").select("*").eq("tournament_id", match.id);
-        setRegs(regData ?? []);
-        setRegCount(regData?.length ?? 0);
+        const [regRes, resultsRes] = await Promise.all([
+          supabase.from("tournament_registrations").select("*").eq("tournament_id", match.id),
+          supabase.from("tournament_results").select("*").eq("tournament_id", match.id).order("total_points", { ascending: false }),
+        ]);
+        setRegs(regRes.data ?? []);
+        setRegCount(regRes.data?.length ?? 0);
+        setResults((resultsRes.data as any[]) ?? []);
       }
       setLoading(false);
     };
@@ -42,13 +48,9 @@ export default function TournamentDetail() {
   );
 
   const statusLabel: Record<string, string> = {
-    Open: "Abierto",
-    Closed: "Cerrado",
-    "In Progress": "En Progreso",
-    Finished: "Finalizado",
+    Open: "Abierto", Closed: "Cerrado", "In Progress": "En Progreso", Finished: "Finalizado",
   };
 
-  // Group registrations by team
   const teamMap = new Map<string, any[]>();
   regs.forEach((r) => {
     const key = r.tournament_team_name || r.nickname;
@@ -85,6 +87,46 @@ export default function TournamentDetail() {
         <LobbyProgress current={regCount} max={tournament.max_players} label="Lobby 1" />
       </div>
 
+      {/* Tournament Results */}
+      {results.length > 0 && (
+        <div className="bg-card border border-border rounded-lg p-6">
+          <h2 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
+            <Medal className="h-5 w-5 text-primary" /> Resultados del Torneo
+          </h2>
+          <div className="border border-border rounded-lg overflow-hidden">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-12">#</TableHead>
+                  <TableHead>Equipo</TableHead>
+                  <TableHead className="text-right">Kills</TableHead>
+                  <TableHead className="text-right">Pts Kill</TableHead>
+                  <TableHead className="text-right">Pts Posición</TableHead>
+                  <TableHead className="text-right">Bonus</TableHead>
+                  <TableHead className="text-right">Total</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {results.map((r: any, i: number) => (
+                  <TableRow key={r.id} className={i === 0 ? "bg-primary/5" : ""}>
+                    <TableCell className="font-medium text-muted-foreground">{i + 1}</TableCell>
+                    <TableCell className="font-medium text-foreground flex items-center gap-2">
+                      {i === 0 && <Trophy className="h-4 w-4 text-primary" />}
+                      {r.team_name}
+                    </TableCell>
+                    <TableCell className="text-right tabular-nums text-muted-foreground">{r.kills}</TableCell>
+                    <TableCell className="text-right tabular-nums text-muted-foreground">{Number(r.kill_points).toFixed(1)}</TableCell>
+                    <TableCell className="text-right tabular-nums text-muted-foreground">{Number(r.position_points).toFixed(1)}</TableCell>
+                    <TableCell className="text-right tabular-nums text-muted-foreground">{Number(r.multiplier_bonus).toFixed(1)}</TableCell>
+                    <TableCell className="text-right tabular-nums font-semibold text-foreground">{Number(r.total_points).toFixed(1)}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        </div>
+      )}
+
       {/* Registered Teams/Players */}
       <div className="bg-card border border-border rounded-lg p-6">
         <h2 className="text-lg font-semibold text-foreground mb-4">Jugadores Inscritos ({regCount})</h2>
@@ -106,7 +148,6 @@ export default function TournamentDetail() {
         )}
       </div>
 
-      {/* Tournament Bracket */}
       <TournamentBracket tournamentId={tournament.id} />
 
       {showRegister && (
