@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   Home, Trophy, BarChart3, Users, User, Swords, CalendarDays,
   Medal, Star, TrendingUp, BookOpen, ScrollText, MessageCircle,
-  Menu, X, ChevronRight, Shield, LogIn
+  Menu, X, ChevronRight, Shield, LogIn, Megaphone
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -17,10 +17,12 @@ const navItems = [
   { label: "Scrims", path: "/scrims", icon: Swords },
   { label: "Próximos", path: "/upcoming", icon: CalendarDays },
   { label: "Resultados", path: "/results", icon: Medal },
+  { label: "Historial", path: "/tournament-history", icon: Trophy },
   { label: "Salón de la Fama", path: "/hall-of-fame", icon: Star },
+  { label: "Anuncios", path: "/announcements", icon: Megaphone },
   { label: "Creadores", path: "/creators", icon: TrendingUp },
   { label: "Actividad", path: "/activity", icon: BarChart3 },
-  { label: "Acerca de", path: "/about", icon: BookOpen },
+  { label: "Reportar", path: "/report", icon: ScrollText },
   { label: "Reglas", path: "/rules", icon: ScrollText },
 ];
 

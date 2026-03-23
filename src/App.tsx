@@ -8,6 +8,7 @@ import AppLayout from "@/components/AppLayout";
 import Index from "./pages/Index";
 import Tournaments from "./pages/Tournaments";
 import TournamentDetail from "./pages/TournamentDetail";
+import TournamentHistory from "./pages/TournamentHistory";
 import Rankings from "./pages/Rankings";
 import Teams from "./pages/Teams";
 import ClanPage from "./pages/ClanPage";
@@ -26,6 +27,9 @@ import Rules from "./pages/Rules";
 import Admin from "./pages/Admin";
 import Auth from "./pages/Auth";
 import Profile from "./pages/Profile";
+import Announcements from "./pages/Announcements";
+import Report from "./pages/Report";
+import VerifyAccount from "./pages/VerifyAccount";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -42,6 +46,7 @@ const App = () => (
               <Route path="/" element={<Index />} />
               <Route path="/tournaments" element={<Tournaments />} />
               <Route path="/tournaments/:tournamentName" element={<TournamentDetail />} />
+              <Route path="/tournament-history" element={<TournamentHistory />} />
               <Route path="/rankings" element={<Rankings />} />
               <Route path="/teams" element={<Teams />} />
               <Route path="/teams/:clanName" element={<ClanPage />} />
@@ -57,6 +62,9 @@ const App = () => (
               <Route path="/activity" element={<Activity />} />
               <Route path="/about" element={<About />} />
               <Route path="/rules" element={<Rules />} />
+              <Route path="/announcements" element={<Announcements />} />
+              <Route path="/report" element={<Report />} />
+              <Route path="/verify-account" element={<VerifyAccount />} />
               <Route path="/admin" element={<Admin />} />
               <Route path="/auth" element={<Auth />} />
               <Route path="/profile" element={<Profile />} />
