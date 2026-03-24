@@ -19,6 +19,7 @@ import AdminSmurfDetection from "@/components/admin/AdminSmurfDetection";
 import AdminAnnouncements from "@/components/admin/AdminAnnouncements";
 import AdminReports from "@/components/admin/AdminReports";
 import AdminVerification from "@/components/admin/AdminVerification";
+import AdminSiteConfig from "@/components/admin/AdminSiteConfig";
 
 export default function AdminPage() {
   const [globalSearch, setGlobalSearch] = useState("");
@@ -72,6 +73,7 @@ export default function AdminPage() {
           <TabsTrigger value="smurf" className="text-xs">Anti-Smurf</TabsTrigger>
           <TabsTrigger value="moderation" className="text-xs">Moderación</TabsTrigger>
           <TabsTrigger value="backup" className="text-xs">Respaldo</TabsTrigger>
+          <TabsTrigger value="site-config" className="text-xs">Sitio</TabsTrigger>
         </TabsList>
 
         <TabsContent value="dashboard"><AdminDashboard /></TabsContent>
@@ -90,6 +92,7 @@ export default function AdminPage() {
         <TabsContent value="smurf"><AdminSmurfDetection /></TabsContent>
         <TabsContent value="moderation"><AdminModerationLog /></TabsContent>
         <TabsContent value="backup"><AdminBackup /></TabsContent>
+        <TabsContent value="site-config"><AdminSiteConfig /></TabsContent>
       </Tabs>
     </div>
   );

@@ -422,12 +422,35 @@ export type Database = {
         }
         Relationships: []
       }
+      site_config: {
+        Row: {
+          id: string
+          key: string
+          updated_at: string
+          value: Json
+        }
+        Insert: {
+          id?: string
+          key: string
+          updated_at?: string
+          value?: Json
+        }
+        Update: {
+          id?: string
+          key?: string
+          updated_at?: string
+          value?: Json
+        }
+        Relationships: []
+      }
       tournament_champions: {
         Row: {
           created_at: string
           date: string
           id: string
           mode: string
+          prize: string | null
+          sponsor_tag: string | null
           team_name: string
           tournament_id: string
           tournament_name: string
@@ -437,6 +460,8 @@ export type Database = {
           date: string
           id?: string
           mode: string
+          prize?: string | null
+          sponsor_tag?: string | null
           team_name: string
           tournament_id: string
           tournament_name: string
@@ -446,6 +471,8 @@ export type Database = {
           date?: string
           id?: string
           mode?: string
+          prize?: string | null
+          sponsor_tag?: string | null
           team_name?: string
           tournament_id?: string
           tournament_name?: string
