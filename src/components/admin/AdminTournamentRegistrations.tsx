@@ -24,7 +24,7 @@ export default function AdminTournamentRegistrations() {
   const [selectedTournament, setSelectedTournament] = useState("all");
   const [loading, setLoading] = useState(true);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
-  const [newTournament, setNewTournament] = useState({ name: "", mode: "Squad", date: "", max_players: 120 });
+  const [newTournament, setNewTournament] = useState({ name: "", mode: "Squad", date: "", max_players: 120, region: "LATAM", image_url: "" });
   const [creating, setCreating] = useState(false);
 
   const fetchData = async () => {
@@ -83,12 +83,14 @@ export default function AdminTournamentRegistrations() {
       mode: newTournament.mode,
       date: new Date(newTournament.date).toISOString(),
       max_players: newTournament.max_players,
-    });
+      region: newTournament.region,
+      image_url: newTournament.image_url,
+    } as any);
     setCreating(false);
     if (error) { toast.error(error.message); return; }
     toast.success("Torneo creado");
     setShowCreateDialog(false);
-    setNewTournament({ name: "", mode: "Squad", date: "", max_players: 120 });
+    setNewTournament({ name: "", mode: "Squad", date: "", max_players: 120, region: "LATAM", image_url: "" });
     fetchData();
   };
 
@@ -219,6 +221,20 @@ export default function AdminTournamentRegistrations() {
             <div>
               <label className="text-sm text-muted-foreground mb-1 block">Máx. Jugadores</label>
               <Input type="number" value={newTournament.max_players} onChange={(e) => setNewTournament({ ...newTournament, max_players: parseInt(e.target.value) || 120 })} />
+            </div>
+            <div>
+              <label className="text-sm text-muted-foreground mb-1 block">Región</label>
+              <Select value={newTournament.region} onValueChange={(v) => setNewTournament({ ...newTournament, region: v })}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="LATAM">LATAM</SelectItem>
+                  <SelectItem value="BR">BR</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <label className="text-sm text-muted-foreground mb-1 block">URL de Imagen (evidencia)</label>
+              <Input value={newTournament.image_url} onChange={(e) => setNewTournament({ ...newTournament, image_url: e.target.value })} placeholder="https://..." />
             </div>
           </div>
           <Button onClick={createTournament} disabled={creating} className="w-full mt-2">
