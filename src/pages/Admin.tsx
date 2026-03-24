@@ -19,6 +19,7 @@ import AdminSmurfDetection from "@/components/admin/AdminSmurfDetection";
 import AdminAnnouncements from "@/components/admin/AdminAnnouncements";
 import AdminReports from "@/components/admin/AdminReports";
 import AdminVerification from "@/components/admin/AdminVerification";
+import AdminSiteConfig from "@/components/admin/AdminSiteConfig";
 
 export default function AdminPage() {
   const [globalSearch, setGlobalSearch] = useState("");
