@@ -24,7 +24,7 @@ export default function AdminTournamentRegistrations() {
   const [selectedTournament, setSelectedTournament] = useState("all");
   const [loading, setLoading] = useState(true);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
-  const [newTournament, setNewTournament] = useState({ name: "", mode: "Squad", date: "", max_players: 120 });
+  const [newTournament, setNewTournament] = useState({ name: "", mode: "Squad", date: "", max_players: 120, region: "LATAM", image_url: "" });
   const [creating, setCreating] = useState(false);
 
   const fetchData = async () => {
