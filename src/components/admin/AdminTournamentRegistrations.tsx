@@ -222,6 +222,20 @@ export default function AdminTournamentRegistrations() {
               <label className="text-sm text-muted-foreground mb-1 block">Máx. Jugadores</label>
               <Input type="number" value={newTournament.max_players} onChange={(e) => setNewTournament({ ...newTournament, max_players: parseInt(e.target.value) || 120 })} />
             </div>
+            <div>
+              <label className="text-sm text-muted-foreground mb-1 block">Región</label>
+              <Select value={newTournament.region} onValueChange={(v) => setNewTournament({ ...newTournament, region: v })}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="LATAM">LATAM</SelectItem>
+                  <SelectItem value="BR">BR</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <label className="text-sm text-muted-foreground mb-1 block">URL de Imagen (evidencia)</label>
+              <Input value={newTournament.image_url} onChange={(e) => setNewTournament({ ...newTournament, image_url: e.target.value })} placeholder="https://..." />
+            </div>
           </div>
           <Button onClick={createTournament} disabled={creating} className="w-full mt-2">
             {creating ? "Creando..." : "Crear Torneo"}
