@@ -73,6 +73,7 @@ export default function AdminPage() {
           <TabsTrigger value="smurf" className="text-xs">Anti-Smurf</TabsTrigger>
           <TabsTrigger value="moderation" className="text-xs">Moderación</TabsTrigger>
           <TabsTrigger value="backup" className="text-xs">Respaldo</TabsTrigger>
+          <TabsTrigger value="site-config" className="text-xs">Sitio</TabsTrigger>
         </TabsList>
 
         <TabsContent value="dashboard"><AdminDashboard /></TabsContent>
