@@ -83,12 +83,14 @@ export default function AdminTournamentRegistrations() {
       mode: newTournament.mode,
       date: new Date(newTournament.date).toISOString(),
       max_players: newTournament.max_players,
-    });
+      region: newTournament.region,
+      image_url: newTournament.image_url,
+    } as any);
     setCreating(false);
     if (error) { toast.error(error.message); return; }
     toast.success("Torneo creado");
     setShowCreateDialog(false);
-    setNewTournament({ name: "", mode: "Squad", date: "", max_players: 120 });
+    setNewTournament({ name: "", mode: "Squad", date: "", max_players: 120, region: "LATAM", image_url: "" });
     fetchData();
   };
 
