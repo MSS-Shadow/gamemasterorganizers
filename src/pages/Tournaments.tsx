@@ -14,9 +14,11 @@ export default function TournamentsPage() {
   const [selectedTournament, setSelectedTournament] = useState<Tournament | null>(null);
   const [filterMode, setFilterMode] = useState("Todos");
   const [filterStatus, setFilterStatus] = useState("Todos");
+  const [filterRegion, setFilterRegion] = useState("Todos");
 
   const modes = ["Todos", "Solo", "Duo", "Trio", "Squad"];
   const statuses = ["Todos", "Open", "Closed", "In Progress", "Finished"];
+  const regions = ["Todos", "LATAM", "BR"];
   const statusLabel: Record<string, string> = { Open: "Abierto", Closed: "Cerrado", "In Progress": "En Progreso", Finished: "Finalizado" };
 
   useEffect(() => {
@@ -37,6 +39,7 @@ export default function TournamentsPage() {
 
   let filtered = filterMode === "Todos" ? tournaments : tournaments.filter((t) => t.mode === filterMode);
   if (filterStatus !== "Todos") filtered = filtered.filter((t) => t.status === filterStatus);
+  if (filterRegion !== "Todos") filtered = filtered.filter((t) => (t as any).region === filterRegion);
 
   return (
     <div className="space-y-6">
@@ -64,6 +67,15 @@ export default function TournamentsPage() {
             {statusLabel[s] || s}
           </button>
         ))}
+        <span className="mx-1" />
+        {regions.map((r) => (
+          <button key={r} onClick={() => setFilterRegion(r)}
+            className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
+              filterRegion === r ? "bg-primary/80 text-primary-foreground" : "bg-card text-muted-foreground border border-border hover:text-foreground"
+            }`}>
+            {r}
+          </button>
+        ))}
       </div>
 
       <div className="space-y-4">
@@ -72,33 +84,42 @@ export default function TournamentsPage() {
         )}
         {filtered.map((t) => {
           const count = regCounts[t.id] || 0;
+          const imgUrl = (t as any).image_url;
           return (
-            <div key={t.id} className="bg-card border border-border rounded-lg p-5">
-              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-3">
-                <Link to={`/tournaments/${t.id}`} className="flex items-center gap-3 hover:opacity-80">
-                  <div className="p-2 rounded-md bg-primary/10">
-                    <Trophy className="h-4 w-4 text-primary" />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-foreground">{t.name}</h3>
-                    <p className="text-sm text-muted-foreground">{t.mode} · {new Date(t.date).toLocaleDateString("es")}</p>
-                  </div>
-                </Link>
-                <div className="flex items-center gap-3">
-                  <span className={`px-2.5 py-1 rounded text-xs font-medium ${
-                    t.status === "Open" ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"
-                  }`}>
-                    {statusLabel[t.status] || t.status}
-                  </span>
-                  {t.status === "Open" && (
-                    <button onClick={() => setSelectedTournament(t)}
-                      className="bg-primary text-primary-foreground px-4 py-2 rounded-md text-sm font-semibold hover:brightness-110 active:scale-95 transition-all">
-                      Inscribirse
-                    </button>
-                  )}
+            <div key={t.id} className="bg-card border border-border rounded-lg overflow-hidden">
+              {imgUrl && (
+                <div className="relative h-32 overflow-hidden">
+                  <img src={imgUrl} alt={t.name} className="w-full h-full object-cover" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-card to-transparent" />
                 </div>
+              )}
+              <div className="p-5">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-3">
+                  <Link to={`/tournaments/${t.id}`} className="flex items-center gap-3 hover:opacity-80">
+                    <div className="p-2 rounded-md bg-primary/10">
+                      <Trophy className="h-4 w-4 text-primary" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-foreground">{t.name}</h3>
+                      <p className="text-sm text-muted-foreground">{t.mode} · {(t as any).region || "LATAM"} · {new Date(t.date).toLocaleDateString("es")}</p>
+                    </div>
+                  </Link>
+                  <div className="flex items-center gap-3">
+                    <span className={`px-2.5 py-1 rounded text-xs font-medium ${
+                      t.status === "Open" ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"
+                    }`}>
+                      {statusLabel[t.status] || t.status}
+                    </span>
+                    {t.status === "Open" && (
+                      <button onClick={() => setSelectedTournament(t)}
+                        className="bg-primary text-primary-foreground px-4 py-2 rounded-md text-sm font-semibold hover:brightness-110 active:scale-95 transition-all">
+                        Inscribirse
+                      </button>
+                    )}
+                  </div>
+                </div>
+                <LobbyProgress current={count} max={t.max_players} label="Lobby 1" />
               </div>
-              <LobbyProgress current={count} max={t.max_players} label="Lobby 1" />
             </div>
           );
         })}
