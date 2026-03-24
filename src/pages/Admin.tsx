@@ -92,6 +92,7 @@ export default function AdminPage() {
         <TabsContent value="smurf"><AdminSmurfDetection /></TabsContent>
         <TabsContent value="moderation"><AdminModerationLog /></TabsContent>
         <TabsContent value="backup"><AdminBackup /></TabsContent>
+        <TabsContent value="site-config"><AdminSiteConfig /></TabsContent>
       </Tabs>
     </div>
   );
