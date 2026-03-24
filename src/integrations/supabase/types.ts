@@ -448,6 +448,7 @@ export type Database = {
           created_at: string
           date: string
           id: string
+          image_url: string | null
           mode: string
           prize: string | null
           sponsor_tag: string | null
@@ -459,6 +460,7 @@ export type Database = {
           created_at?: string
           date: string
           id?: string
+          image_url?: string | null
           mode: string
           prize?: string | null
           sponsor_tag?: string | null
@@ -470,6 +472,7 @@ export type Database = {
           created_at?: string
           date?: string
           id?: string
+          image_url?: string | null
           mode?: string
           prize?: string | null
           sponsor_tag?: string | null
@@ -666,9 +669,11 @@ export type Database = {
           date: string
           format: string
           id: string
+          image_url: string | null
           max_players: number
           mode: string
           name: string
+          region: string | null
           status: string
           updated_at: string
         }
@@ -677,9 +682,11 @@ export type Database = {
           date: string
           format?: string
           id?: string
+          image_url?: string | null
           max_players?: number
           mode: string
           name: string
+          region?: string | null
           status?: string
           updated_at?: string
         }
@@ -688,9 +695,11 @@ export type Database = {
           date?: string
           format?: string
           id?: string
+          image_url?: string | null
           max_players?: number
           mode?: string
           name?: string
+          region?: string | null
           status?: string
           updated_at?: string
         }
