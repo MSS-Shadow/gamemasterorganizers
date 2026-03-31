@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -11,6 +11,14 @@ export default function ResetPassword() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+
+  // Limpiar cualquier lock pendiente al montar el componente
+  useEffect(() => {
+    return () => {
+      // Limpiar posibles locks de Supabase al desmontar
+      supabase.auth.stop();
+    };
+  }, []);
 
   const handleUpdatePassword = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -25,17 +33,23 @@ export default function ResetPassword() {
 
     setLoading(true);
 
-    const { error } = await supabase.auth.updateUser({ password });
+    try {
+      const { error } = await supabase.auth.updateUser({ password });
 
-    setLoading(false);
-
-    if (error) {
-      toast.error(error.message);
-    } else {
-      toast.success("¡Contraseña actualizada correctamente!");
-      setTimeout(() => {
-        navigate("/auth");
-      }, 1500);
+      if (error) {
+        console.error("Error al actualizar contraseña:", error);
+        toast.error(error.message);
+      } else {
+        toast.success("¡Contraseña actualizada correctamente!");
+        // Pequeña pausa antes de redirigir
+        setTimeout(() => {
+          navigate("/auth");
+        }, 1200);
+      }
+    } catch (err: any) {
+      toast.error("Error inesperado: " + err.message);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -54,7 +68,7 @@ export default function ResetPassword() {
 
         <h1 className="text-3xl font-bold text-center mb-2">Nueva contraseña</h1>
         <p className="text-center text-zinc-400 mb-8">
-          Ingresa tu nueva contraseña
+          Ingresa y confirma tu nueva contraseña
         </p>
 
         <form onSubmit={handleUpdatePassword} className="space-y-4">
