@@ -5,6 +5,8 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/contexts/AuthContext";
 import AppLayout from "@/components/AppLayout";
+
+// Importa todas las páginas
 import Index from "./pages/Index";
 import Tournaments from "./pages/Tournaments";
 import TournamentDetail from "./pages/TournamentDetail";
@@ -31,6 +33,10 @@ import Announcements from "./pages/Announcements";
 import Report from "./pages/Report";
 import VerifyAccount from "./pages/VerifyAccount";
 import NotFound from "./pages/NotFound";
+
+// ←←←←← AGREGAR ESTOS DOS IMPORTS ←←←←←
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
 
 const queryClient = new QueryClient();
 
