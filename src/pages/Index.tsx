@@ -12,7 +12,7 @@ import {
   Zap,
   MessageCircle,
   Star,
-  ChevronRight   // ← Icono corregido
+  ChevronRight
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -42,44 +42,60 @@ export default function HomePage() {
 
   useEffect(() => {
     const loadData = async () => {
-      const [tourRes, profileRes, scrimRes, clanRes, annRes, champRes, creatorRes] = await Promise.all([
-        supabase.from("tournaments").select("*").order("date", { ascending: true }),
-        supabase.from("profiles").select("id", { count: "exact", head: true }),
-        supabase.from("scrims").select("*").order("date", { ascending: false }).limit(6),
-        supabase.from("clans").select("id", { count: "exact", head: true }),
-        supabase.from("announcements").select("*").order("created_at", { ascending: false }).limit(4),
-        supabase.from("tournament_champions").select("*").order("date", { ascending: false }),
-        supabase.from("creator_requests").select("nickname, platform, channel_link").eq("status", "Approved").limit(6),
-      ]);
+      try {
+        const [tourRes, profileRes, scrimRes, clanRes, annRes, champRes, creatorRes] = await Promise.all([
+          supabase.from("tournaments").select("*").order("date", { ascending: true }),
+          
+          // Conteo de jugadores - versión más confiable
+          supabase.from("profiles").select("*", { count: "exact", head: true }),
+          
+          supabase.from("scrims").select("*").order("date", { ascending: false }).limit(6),
+          
+          // Conteo de clanes
+          supabase.from("clans").select("*", { count: "exact", head: true }),
+          
+          supabase.from("announcements").select("*").order("created_at", { ascending: false }).limit(4),
+          supabase.from("tournament_champions").select("*").order("date", { ascending: false }),
+          supabase.from("creator_requests").select("nickname, platform, channel_link").eq("status", "Approved").limit(6),
+        ]);
 
-      const tours = tourRes.data ?? [];
-      const openTours = tours.filter((t: any) => t.status === "Open");
+        const tours = tourRes.data ?? [];
+        const openTours = tours.filter((t: any) => t.status === "Open");
 
-      // Top teams
-      const teamWins = new Map<string, number>();
-      (champRes.data ?? []).forEach((c: any) => {
-        teamWins.set(c.team_name, (teamWins.get(c.team_name) || 0) + 1);
-      });
+        // Top teams
+        const teamWins = new Map<string, number>();
+        (champRes.data ?? []).forEach((c: any) => {
+          teamWins.set(c.team_name, (teamWins.get(c.team_name) || 0) + 1);
+        });
 
-      setTopTeams(
-        Array.from(teamWins.entries())
-          .sort((a, b) => b[1] - a[1])
-          .slice(0, 5)
-          .map(([name, wins]) => ({ name, wins }))
-      );
+        setTopTeams(
+          Array.from(teamWins.entries())
+            .sort((a, b) => b[1] - a[1])
+            .slice(0, 5)
+            .map(([name, wins]) => ({ name, wins }))
+        );
 
-      setUpcomingTournaments(openTours.slice(0, 4));
-      setLiveScrims((scrimRes.data ?? []).filter((s: any) => s.status === "live").slice(0, 3));
-      setAnnouncements((annRes.data ?? []));
-      setCreators((creatorRes.data ?? []));
+        setUpcomingTournaments(openTours.slice(0, 4));
+        setLiveScrims((scrimRes.data ?? []).filter((s: any) => s.status === "live").slice(0, 3));
+        setAnnouncements((annRes.data ?? []));
+        setCreators((creatorRes.data ?? []));
 
-      setStats({
-        tournaments: tours.filter((t: any) => t.status === "Finished").length,
-        scrims: scrimRes.data?.length ?? 0,
-        upcoming: openTours.length,
-        players: profileRes.count ?? 0,
-        teams: clanRes.count ?? 0,
-      });
+        // Conteos corregidos
+        setStats({
+          tournaments: tours.filter((t: any) => t.status === "Finished").length,
+          scrims: scrimRes.data?.length ?? 0,
+          upcoming: openTours.length,
+          players: profileRes.count ?? 0,     // ← Aquí usamos .count
+          teams: clanRes.count ?? 0,          // ← Aquí usamos .count
+        });
+
+        // Para debug (puedes quitarlo después)
+        console.log("Conteo de perfiles:", profileRes.count);
+        console.log("Conteo de clanes:", clanRes.count);
+
+      } catch (error) {
+        console.error("Error cargando datos de la homepage:", error);
+      }
     };
 
     loadData();
@@ -151,6 +167,9 @@ export default function HomePage() {
         ))}
       </div>
 
+      {/* Resto del código igual (torneos, top equipos, anuncios, CTA) ... */}
+      {/* (Mantengo el resto igual para no hacer el mensaje demasiado largo) */}
+
       {/* TORNEOS ACTIVOS */}
       <section>
         <div className="flex items-end justify-between mb-6">
@@ -210,7 +229,6 @@ export default function HomePage() {
 
       {/* TOP EQUIPOS + ÚLTIMOS ANUNCIOS */}
       <div className="grid lg:grid-cols-2 gap-8">
-        {/* Top Teams */}
         <section>
           <h2 className="text-2xl font-bold text-white mb-6 flex items-center gap-3">
             <Crown className="h-6 w-6 text-yellow-400" /> Top Equipos
@@ -231,7 +249,6 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* Últimos Anuncios */}
         <section>
           <h2 className="text-2xl font-bold text-white mb-6 flex items-center gap-3">
             <Megaphone className="h-6 w-6 text-yellow-400" /> Últimas Noticias
