@@ -18,8 +18,15 @@ interface AuthContextType {
 }
 
 const AuthContext = createContext<AuthContextType>({
-  user: null, session: null, profile: null, roles: [], loading: true, isAdmin: false, isClanLeader: false,
-  signOut: async () => {}, refreshProfile: async () => {},
+  user: null,
+  session: null,
+  profile: null,
+  roles: [],
+  loading: true,
+  isAdmin: false,
+  isClanLeader: false,
+  signOut: async () => {},
+  refreshProfile: async () => {},
 });
 
 export const useAuth = () => useContext(AuthContext);
@@ -32,13 +39,38 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   const fetchProfile = async (userId: string) => {
-    const { data } = await supabase.from("profiles").select("*").eq("user_id", userId).single();
-    setProfile(data);
+    try {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("user_id", userId)
+        .single();
+
+      if (error) {
+        console.warn("No se pudo cargar el perfil:", error.message);
+        setProfile(null);
+      } else {
+        setProfile(data);
+      }
+    } catch (err) {
+      console.warn("Error en fetchProfile:", err);
+      setProfile(null);
+    }
   };
 
+  // Temporal: como no tienes tabla user_roles, asumimos roles básicos
   const fetchRoles = async (userId: string) => {
-    const { data } = await supabase.from("user_roles").select("role").eq("user_id", userId);
-    setRoles(data?.map((r) => r.role) ?? []);
+    try {
+      // Por ahora solo verificamos si es el usuario administrador manualmente
+      // Puedes cambiar "tu-email@ejemplo.com" por tu correo real
+      const isAdminUser = user?.email === "portadormato.com"; // ← CAMBIA ESTO por tu correo
+
+      setRoles(isAdminUser ? ["admin"] : []);
+      console.log("Roles asignados:", isAdminUser ? ["admin"] : []);
+    } catch (err) {
+      console.warn("Error en fetchRoles:", err);
+      setRoles([]);
+    }
   };
 
   const refreshProfile = async () => {
@@ -51,11 +83,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
       setUser(session?.user ?? null);
+
       if (session?.user) {
         setTimeout(() => {
           fetchProfile(session.user.id);
           fetchRoles(session.user.id);
-        }, 0);
+        }, 100);
       } else {
         setProfile(null);
         setRoles([]);
@@ -63,6 +96,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setLoading(false);
     });
 
+    // Cargar sesión inicial
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
@@ -85,7 +119,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, profile, roles, loading, isAdmin: roles.includes("admin"), isClanLeader: roles.includes("clan_leader"), signOut, refreshProfile }}>
+    <AuthContext.Provider value={{
+      user,
+      session,
+      profile,
+      roles,
+      loading,
+      isAdmin: roles.includes("admin"),
+      isClanLeader: roles.includes("clan_leader"),
+      signOut,
+      refreshProfile
+    }}>
       {children}
     </AuthContext.Provider>
   );
