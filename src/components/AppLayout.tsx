@@ -101,7 +101,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
           <button
             onClick={() => setMobileOpen(!mobileOpen)}
-            className="p-2 text-white hover:bg-zinc-800 rounded-lg transition-colors"
+            className="p-2 text-white hover:bg-zinc-800 rounded-lg"
           >
             {mobileOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
           </button>
@@ -140,7 +140,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       </AnimatePresence>
 
       {/* Main Content */}
-      <main className="flex-1 lg:ml-64 pt-16 lg:pt-0 min-h-screen">
+      <main className="flex-1 lg:ml-64 pt-16 lg:pt-0 min-h-screen bg-zinc-950">
         <div className="p-4 md:p-6 lg:p-8 max-w-7xl mx-auto">
           {children}
         </div>
