@@ -12,20 +12,26 @@ export default function ForgotPassword() {
 
   const handleReset = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email) return toast.error("Por favor ingresa tu email");
+    
+    if (!email) {
+      return toast.error("Por favor ingresa tu email");
+    }
 
     setLoading(true);
+    console.log("🔄 Intentando enviar email de recuperación a:", email);
 
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
       redirectTo: `${window.location.origin}/auth/reset-password`,
     });
 
     setLoading(false);
 
     if (error) {
-      toast.error(error.message);
+      console.error("❌ Error al enviar email de recuperación:", error);
+      toast.error(error.message || "No se pudo enviar el email. Inténtalo más tarde.");
     } else {
-      toast.success("✅ Te enviamos un link de recuperación. Revisa tu email.");
+      console.log("✅ Respuesta de Supabase:", data);
+      toast.success("✅ Te hemos enviado un link de recuperación. Revisa tu bandeja de entrada y spam.");
     }
   };
 
@@ -58,6 +64,11 @@ export default function ForgotPassword() {
             {loading ? "Enviando link..." : "Enviar link de recuperación"}
           </Button>
         </form>
+
+        <p className="text-center text-sm text-zinc-500 mt-6">
+          ¿Ya recordaste tu contraseña?{" "}
+          <Link to="/auth" className="text-yellow-400 hover:underline">Inicia sesión</Link>
+        </p>
       </div>
     </div>
   );
