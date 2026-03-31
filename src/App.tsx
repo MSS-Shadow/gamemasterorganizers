@@ -34,7 +34,7 @@ import Report from "./pages/Report";
 import VerifyAccount from "./pages/VerifyAccount";
 import NotFound from "./pages/NotFound";
 
-// ←←←←← AGREGAR ESTOS DOS IMPORTS ←←←←←
+// Importar las páginas de recuperación de contraseña
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 
