@@ -36,7 +36,6 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     <div className="flex min-h-screen bg-zinc-950">
       {/* Desktop Sidebar */}
       <aside className="hidden lg:flex flex-col w-64 border-r border-zinc-800 bg-zinc-900 fixed h-screen z-30">
-        {/* Logo */}
         <div className="flex items-center gap-3 px-6 py-6 border-b border-zinc-800">
           <div className="p-2 bg-yellow-400 rounded-xl">
             <Trophy className="h-7 w-7 text-zinc-950" />
@@ -47,7 +46,6 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           </div>
         </div>
 
-        {/* Navegación */}
         <nav className="flex-1 overflow-y-auto py-6 px-3 space-y-1">
           {allNav.map((item) => (
             <Link
@@ -65,7 +63,6 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           ))}
         </nav>
 
-        {/* Footer */}
         <div className="p-4 border-t border-zinc-800">
           {user ? (
             <Link
@@ -102,19 +99,12 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             <span className="font-bold text-xl tracking-tight text-white">Game Master</span>
           </Link>
 
-          <div className="flex items-center gap-3">
-            {user && (
-              <Link to="/profile" className="text-white">
-                <User className="h-6 w-6" />
-              </Link>
-            )}
-            <button
-              onClick={() => setMobileOpen(!mobileOpen)}
-              className="p-2 text-white hover:bg-zinc-800 rounded-lg transition-colors"
-            >
-              {mobileOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-            </button>
-          </div>
+          <button
+            onClick={() => setMobileOpen(!mobileOpen)}
+            className="p-2 text-white hover:bg-zinc-800 rounded-lg"
+          >
+            {mobileOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+          </button>
         </div>
       </header>
 
