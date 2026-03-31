@@ -2,16 +2,10 @@
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from './types';
 
-// Fallback seguro para Lovable + GitHub sync
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || 
-                     "https://ljbhopkstvdqujhhuprb.supabase.co";
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || "https://ljbhopkstvdqujhhuprb.supabase.co";
+const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxqYmhvcGtzdHZkcXVqaGh1cHJiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM3MDY2MzEsImV4cCI6MjA4OTI4MjYzMX0.oXU9p0Cskw6soTqP63Ca44TjwmvCIdAKgYRbTyZJViA";
 
-const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || 
-                                 "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxqYmhvcGtzdHZkcXVqaGh1cHJiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM3MDY2MzEsImV4cCI6MjA4OTI4MjYzMX0.oXU9p0Cskw6soTqP63Ca44TjwmvCIdAKgYRbTyZJViA";
-
-if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
-  console.error("❌ Supabase keys are missing. Check environment variables in Lovable.");
-}
+console.log("Supabase client initialized with URL:", SUPABASE_URL ? "OK" : "MISSING");
 
 export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
   auth: {
