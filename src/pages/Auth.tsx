@@ -1,12 +1,11 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Trophy, Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
-import { Link } from "react-router-dom";   // ← Agregado para el enlace
 
 export default function Auth() {
   const [mode, setMode] = useState<"login" | "signup">("login");
@@ -51,7 +50,7 @@ export default function Auth() {
     setForm((prev) => ({ ...prev, [key]: value }));
   };
 
-  // ==================== REGISTRO ====================
+  // REGISTRO
   const handleSignup = async () => {
     if (!form.email || !form.password || !form.nickname || !form.playerId) {
       toast.error("Todos los campos son obligatorios");
@@ -91,23 +90,17 @@ export default function Auth() {
         if (profileError) throw profileError;
 
         if (selectedClan !== "sin_clan") {
-          const { error: requestError } = await supabase.from("clan_join_requests").insert({
+          await supabase.from("clan_join_requests").insert({
             user_id: authData.user.id,
             nickname: form.nickname.trim(),
             player_id: form.playerId.trim(),
             clan_name: selectedClan,
           });
-
-          if (requestError) {
-            console.error("Error creando solicitud:", requestError);
-          } else {
-            toast.success(`¡Registro exitoso! Solicitud enviada al clan "${selectedClan}"`);
-          }
+          toast.success(`¡Registro exitoso! Solicitud enviada al clan "${selectedClan}"`);
         } else {
           toast.success("¡Cuenta creada con éxito! Revisa tu email para confirmar.");
         }
 
-        // Limpiar formulario
         setForm({ email: "", password: "", nickname: "", playerId: "", platform: "Mobile", country: "Uruguay" });
         setSelectedClan("sin_clan");
       }
@@ -118,7 +111,7 @@ export default function Auth() {
     }
   };
 
-  // ==================== LOGIN ====================
+  // LOGIN
   const handleLogin = async () => {
     if (!form.email || !form.password) {
       toast.error("Email y contraseña son obligatorios");
@@ -156,7 +149,6 @@ export default function Auth() {
           {mode === "login" ? "Inicia sesión para continuar" : "Únete a la comunidad de BloodStrike"}
         </p>
 
-        {/* Email */}
         <Input
           type="email"
           placeholder="Email"
@@ -165,7 +157,6 @@ export default function Auth() {
           className="mb-3"
         />
 
-        {/* Password */}
         <div className="relative mb-3">
           <Input
             type={showPassword ? "text" : "password"}
@@ -182,7 +173,6 @@ export default function Auth() {
           </button>
         </div>
 
-        {/* Campos solo para Registro */}
         {mode === "signup" && (
           <>
             <Input
@@ -215,7 +205,6 @@ export default function Auth() {
               className="mb-4"
             />
 
-            {/* Selector de Clan */}
             <div className="mb-6">
               <label className="text-sm text-zinc-400 mb-1.5 block">Clan</label>
               <Select value={selectedClan} onValueChange={setSelectedClan}>
@@ -237,9 +226,7 @@ export default function Auth() {
                 </SelectContent>
               </Select>
               <p className="text-xs text-zinc-500 mt-1.5">
-                {selectedClan !== "sin_clan"
-                  ? "Se enviará una solicitud al líder del clan"
-                  : "Puedes unirte a un clan más tarde"}
+                {selectedClan !== "sin_clan" ? "Se enviará una solicitud al líder del clan" : "Puedes unirte a un clan más tarde"}
               </p>
             </div>
           </>
@@ -250,14 +237,10 @@ export default function Auth() {
           disabled={loading}
           className="w-full py-6 text-base font-semibold"
         >
-          {loading
-            ? "Procesando..."
-            : mode === "login"
-              ? "Iniciar Sesión"
-              : "Crear Cuenta"}
+          {loading ? "Procesando..." : mode === "login" ? "Iniciar Sesión" : "Crear Cuenta"}
         </Button>
 
-        {/* ←←←←← ENLACE DE OLVIDASTE TU CONTRASEÑA ←←←←← */}
+        {/* ENLACE DE OLVIDASTE TU CONTRASEÑA - AQUÍ ESTÁ */}
         {mode === "login" && (
           <p className="text-center text-sm text-zinc-400 mt-4">
             <Link 
