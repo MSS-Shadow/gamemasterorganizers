@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { CheckCircle, XCircle, RefreshCw } from "lucide-react";
+import { CheckCircle, XCircle, RefreshCw, Image, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
@@ -15,6 +15,7 @@ interface Request {
   clan_name: string;
   email: string;
   description: string | null;
+  proof_image_url: string | null;
   status: string;
   created_at: string;
 }
@@ -47,11 +48,10 @@ export default function AdminClanLeaderRequests() {
 
   const handleAction = async (req: Request, action: "approved" | "rejected") => {
     if (!user) return;
-
     setProcessingId(req.id);
 
     try {
-      // 1. Actualizar estado de la solicitud
+      // Actualizar estado de la solicitud
       const { error: updateError } = await supabase
         .from("clan_leader_requests")
         .update({
@@ -64,7 +64,7 @@ export default function AdminClanLeaderRequests() {
       if (updateError) throw updateError;
 
       if (action === "approved") {
-        // 2. Crear el clan si no existe
+        // Crear el clan si no existe
         const { data: existingClan } = await supabase
           .from("clans")
           .select("id")
@@ -82,13 +82,13 @@ export default function AdminClanLeaderRequests() {
           if (clanError) throw clanError;
         }
 
-        // 3. Asignar rol de clan_leader
+        // Asignar rol de clan_leader
         await supabase.from("user_roles").upsert({
           user_id: req.user_id,
           role: "clan_leader",
         });
 
-        // 4. Actualizar perfil del usuario
+        // Actualizar perfil
         await supabase
           .from("profiles")
           .update({ is_clan_leader: true })
@@ -113,12 +113,12 @@ export default function AdminClanLeaderRequests() {
       toast.error(error.message || "Error al procesar la solicitud");
     } finally {
       setProcessingId(null);
-      fetchRequests(); // Recargar lista
+      fetchRequests();
     }
   };
 
   if (loading) {
-    return <div className="text-center py-12 text-muted-foreground">Cargando solicitudes de líderes...</div>;
+    return <div className="text-center py-12 text-muted-foreground">Cargando solicitudes...</div>;
   }
 
   return (
@@ -126,7 +126,7 @@ export default function AdminClanLeaderRequests() {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold text-foreground">Solicitudes de Líder de Clan</h2>
-          <p className="text-muted-foreground">Revisa y gestiona las solicitudes para crear nuevos clanes</p>
+          <p className="text-muted-foreground">Revisa las solicitudes y las capturas de prueba</p>
         </div>
         <Button variant="outline" size="sm" onClick={fetchRequests}>
           <RefreshCw className="h-4 w-4 mr-2" />
@@ -136,7 +136,7 @@ export default function AdminClanLeaderRequests() {
 
       {requests.length === 0 ? (
         <div className="text-center py-16 bg-card border border-border rounded-xl">
-          <p className="text-muted-foreground">No hay solicitudes pendientes en este momento.</p>
+          <p className="text-muted-foreground">No hay solicitudes pendientes.</p>
         </div>
       ) : (
         <div className="border border-border rounded-xl overflow-hidden bg-card">
@@ -146,7 +146,7 @@ export default function AdminClanLeaderRequests() {
                 <TableHead>Nickname</TableHead>
                 <TableHead>Clan Solicitado</TableHead>
                 <TableHead className="hidden md:table-cell">Player ID</TableHead>
-                <TableHead className="hidden md:table-cell">Descripción</TableHead>
+                <TableHead>Captura</TableHead>
                 <TableHead>Fecha</TableHead>
                 <TableHead className="text-right">Acciones</TableHead>
               </TableRow>
@@ -157,12 +157,29 @@ export default function AdminClanLeaderRequests() {
                   <TableCell className="font-medium">{req.nickname}</TableCell>
                   <TableCell className="font-semibold text-primary">{req.clan_name}</TableCell>
                   <TableCell className="hidden md:table-cell text-muted-foreground">{req.player_id}</TableCell>
-                  <TableCell className="hidden md:table-cell text-muted-foreground max-w-xs truncate">
-                    {req.description || "—"}
+                  
+                  {/* Columna de Captura */}
+                  <TableCell>
+                    {req.proof_image_url ? (
+                      <a 
+                        href={req.proof_image_url} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-2 text-blue-400 hover:text-blue-500"
+                      >
+                        <Image className="h-4 w-4" />
+                        Ver Captura
+                        <ExternalLink className="h-3 w-3" />
+                      </a>
+                    ) : (
+                      <span className="text-muted-foreground text-xs">Sin captura</span>
+                    )}
                   </TableCell>
+
                   <TableCell className="text-sm text-muted-foreground">
                     {new Date(req.created_at).toLocaleDateString("es")}
                   </TableCell>
+
                   <TableCell className="text-right">
                     {req.status === "pending" ? (
                       <div className="flex justify-end gap-2">
