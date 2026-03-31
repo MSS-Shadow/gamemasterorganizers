@@ -43,6 +43,8 @@ const App = () => (
         <AuthProvider>
           <AppLayout>
             <Routes>
+              <Route path="/auth/forgot-password" element={<ForgotPassword />} />
+              <Route path="/auth/reset-password" element={<ResetPassword />} />
               <Route path="/" element={<Index />} />
               <Route path="/tournaments" element={<Tournaments />} />
               <Route path="/tournaments/:tournamentName" element={<TournamentDetail />} />
