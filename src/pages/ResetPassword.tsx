@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -11,6 +11,14 @@ export default function ResetPassword() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+
+  // Limpiar cualquier lock pendiente al montar y desmontar
+  useEffect(() => {
+    return () => {
+      // Forzar liberación de locks de Supabase
+      supabase.auth.stop();
+    };
+  }, []);
 
   const handleUpdatePassword = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -29,19 +37,17 @@ export default function ResetPassword() {
       const { error } = await supabase.auth.updateUser({ password });
 
       if (error) {
-        console.error("Error Supabase:", error);
-        toast.error(error.message || "No se pudo actualizar la contraseña");
+        toast.error(error.message);
       } else {
         toast.success("¡Contraseña actualizada correctamente!");
 
-        // Pequeña pausa para que el usuario vea el mensaje de éxito
+        // Esperar un poco para que el toast se vea
         setTimeout(() => {
           navigate("/auth", { replace: true });
-        }, 1800);
+        }, 1500);
       }
     } catch (err: any) {
-      console.error("Error inesperado:", err);
-      toast.error("Error inesperado al actualizar la contraseña");
+      toast.error("Error inesperado: " + (err.message || "Inténtalo de nuevo"));
     } finally {
       setLoading(false);
     }
@@ -89,10 +95,6 @@ export default function ResetPassword() {
             {loading ? "Actualizando contraseña..." : "Cambiar contraseña"}
           </Button>
         </form>
-
-        <p className="text-center text-xs text-zinc-500 mt-6">
-          El enlace de recuperación es válido por un tiempo limitado.
-        </p>
       </div>
     </div>
   );
