@@ -18,6 +18,7 @@ const navItems = [
   { label: "Resultados", path: "/results", icon: Medal },
   { label: "Salón de la Fama", path: "/hall-of-fame", icon: Star },
   { label: "Anuncios", path: "/announcements", icon: Megaphone },
+  { label: "Creadores", path: "/creators", icon: Star },        // ← Asegurado aquí
 ];
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
@@ -88,7 +89,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         </div>
       </aside>
 
-      {/* Mobile Header - Mejorado */}
+      {/* Mobile Header */}
       <header className="lg:hidden fixed top-0 left-0 right-0 z-50 bg-zinc-900 border-b border-zinc-800">
         <div className="flex items-center justify-between px-4 h-16">
           <Link to="/" className="flex items-center gap-2">
@@ -106,7 +107,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             ) : (
               <Link 
                 to="/auth" 
-                className="text-yellow-400 font-medium text-sm flex items-center gap-1"
+                className="text-yellow-400 font-medium text-sm"
               >
                 Iniciar Sesión
               </Link>
@@ -114,7 +115,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
             <button
               onClick={() => setMobileOpen(!mobileOpen)}
-              className="p-2 text-white hover:bg-zinc-800 rounded-lg transition-colors"
+              className="p-2 text-white hover:bg-zinc-800 rounded-lg"
             >
               {mobileOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
             </button>
