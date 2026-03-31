@@ -2,22 +2,38 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
-  Trophy, CalendarDays, Swords, Megaphone, Crown, Users,
-  Award, Zap, MessageCircle, Star
+  Trophy,
+  CalendarDays,
+  Swords,
+  Megaphone,
+  Crown,
+  Users,
+  Award,
+  Zap,
+  MessageCircle,
+  Star,
+  ChevronRight   // ← Icono corregido
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 30 },
-  visible: (i: number) => ({ 
-    opacity: 1, 
-    y: 0, 
-    transition: { delay: i * 0.1, duration: 0.6 } 
+  visible: (i: number) => ({
+    opacity: 1,
+    y: 0,
+    transition: { delay: i * 0.1, duration: 0.6 }
   }),
 };
 
 export default function HomePage() {
-  const [stats, setStats] = useState({ tournaments: 0, scrims: 0, upcoming: 0, players: 0, teams: 0 });
+  const [stats, setStats] = useState({ 
+    tournaments: 0, 
+    scrims: 0, 
+    upcoming: 0, 
+    players: 0, 
+    teams: 0 
+  });
+  
   const [upcomingTournaments, setUpcomingTournaments] = useState<any[]>([]);
   const [liveScrims, setLiveScrims] = useState<any[]>([]);
   const [announcements, setAnnouncements] = useState<any[]>([]);
@@ -71,10 +87,10 @@ export default function HomePage() {
 
   return (
     <div className="space-y-16">
-      {/* HERO SECTION - Más impactante */}
+      {/* HERO SECTION */}
       <section className="relative min-h-[85vh] flex items-center justify-center overflow-hidden rounded-3xl bg-zinc-900 border border-zinc-800">
         <div className="absolute inset-0 bg-[radial-gradient(at_center,#eab30810_0%,transparent_70%)]" />
-        
+       
         <div className="relative z-10 text-center px-6 max-w-4xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 40 }}
@@ -84,16 +100,13 @@ export default function HomePage() {
             <div className="inline-flex items-center gap-2 bg-yellow-400/10 text-yellow-400 px-4 py-1.5 rounded-full text-sm font-medium mb-6">
               <Trophy className="h-4 w-4" /> Comunidad Competitiva BloodStrike LATAM
             </div>
-
             <h1 className="text-5xl md:text-7xl font-bold tracking-tighter text-white leading-none mb-6">
               Donde nace la <span className="text-yellow-400">leyenda</span>
             </h1>
-
             <p className="text-xl text-zinc-400 max-w-2xl mx-auto mb-10">
               Torneos profesionales, scrims de alto nivel y rankings actualizados.<br />
               La plataforma más seria para jugadores competitivos de BloodStrike.
             </p>
-
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link
                 to="/tournaments"
@@ -145,8 +158,12 @@ export default function HomePage() {
             <h2 className="text-3xl font-bold text-white">Torneos Activos</h2>
             <p className="text-zinc-500">Inscríbete antes de que se llenen</p>
           </div>
-          <Link to="/tournaments" className="text-yellow-400 hover:underline text-sm flex items-center gap-1">
-            Ver todos <ChevronRight className="h-4 w-4" />
+          <Link 
+            to="/tournaments" 
+            className="text-yellow-400 hover:underline text-sm flex items-center gap-1"
+          >
+            Ver todos 
+            <ChevronRight className="h-4 w-4" />
           </Link>
         </div>
 
@@ -163,15 +180,18 @@ export default function HomePage() {
               >
                 <div className="flex justify-between items-start mb-4">
                   <div>
-                    <h3 className="font-semibold text-lg text-white group-hover:text-yellow-400 transition-colors">{t.name}</h3>
+                    <h3 className="font-semibold text-lg text-white group-hover:text-yellow-400 transition-colors">
+                      {t.name}
+                    </h3>
                     <p className="text-sm text-zinc-500">{t.mode}</p>
                   </div>
                   <div className="text-right">
                     <p className="text-xs text-zinc-500">Fecha</p>
-                    <p className="text-sm font-medium">{new Date(t.date).toLocaleDateString("es", { month: "short", day: "numeric" })}</p>
+                    <p className="text-sm font-medium">
+                      {new Date(t.date).toLocaleDateString("es", { month: "short", day: "numeric" })}
+                    </p>
                   </div>
                 </div>
-
                 <Link
                   to={`/tournaments/${encodeURIComponent(t.name)}`}
                   className="block w-full bg-yellow-400 text-zinc-950 font-semibold py-3 rounded-2xl text-center hover:bg-yellow-300 transition-colors"
@@ -220,7 +240,9 @@ export default function HomePage() {
             {announcements.length > 0 ? (
               announcements.map((a: any) => (
                 <div key={a.id} className="bg-zinc-900 border border-zinc-800 rounded-2xl p-5">
-                  <p className="text-xs text-zinc-500 mb-1">{new Date(a.created_at).toLocaleDateString("es")}</p>
+                  <p className="text-xs text-zinc-500 mb-1">
+                    {new Date(a.created_at).toLocaleDateString("es")}
+                  </p>
                   <h3 className="font-semibold text-white mb-2">{a.title}</h3>
                   <p className="text-sm text-zinc-400 line-clamp-2">{a.description}</p>
                 </div>
