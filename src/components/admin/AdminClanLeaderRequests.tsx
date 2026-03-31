@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { CheckCircle, XCircle } from "lucide-react";
+import { CheckCircle, XCircle, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
@@ -23,96 +23,173 @@ export default function AdminClanLeaderRequests() {
   const { user, profile } = useAuth();
   const [requests, setRequests] = useState<Request[]>([]);
   const [loading, setLoading] = useState(true);
+  const [processingId, setProcessingId] = useState<string | null>(null);
 
   const fetchRequests = async () => {
     setLoading(true);
-    const { data } = await supabase.from("clan_leader_requests").select("*").order("created_at", { ascending: false });
-    setRequests((data as any[]) ?? []);
+    const { data, error } = await supabase
+      .from("clan_leader_requests")
+      .select("*")
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      toast.error("Error al cargar solicitudes");
+      console.error(error);
+    } else {
+      setRequests((data as any[]) ?? []);
+    }
     setLoading(false);
   };
 
-  useEffect(() => { fetchRequests(); }, []);
+  useEffect(() => {
+    fetchRequests();
+  }, []);
 
   const handleAction = async (req: Request, action: "approved" | "rejected") => {
-    // Update request status
-    const { error } = await supabase.from("clan_leader_requests").update({
-      status: action,
-      reviewed_at: new Date().toISOString(),
-    }).eq("id", req.id);
-    if (error) { toast.error(error.message); return; }
+    if (!user) return;
 
-    if (action === "approved") {
-      // Add clan_leader role
-      await supabase.from("user_roles").insert({ user_id: req.user_id, role: "clan_leader" as any });
+    setProcessingId(req.id);
 
-      // Create clan if it doesn't exist
-      const { data: existing } = await supabase.from("clans").select("id").eq("name", req.clan_name);
-      if (!existing || existing.length === 0) {
-        await supabase.from("clans").insert({
-          name: req.clan_name,
-          leader_user_id: req.user_id,
-          leader_nickname: req.nickname,
+    try {
+      // 1. Actualizar estado de la solicitud
+      const { error: updateError } = await supabase
+        .from("clan_leader_requests")
+        .update({
+          status: action,
+          reviewed_at: new Date().toISOString(),
+          reviewed_by: user.id,
+        })
+        .eq("id", req.id);
+
+      if (updateError) throw updateError;
+
+      if (action === "approved") {
+        // 2. Crear el clan si no existe
+        const { data: existingClan } = await supabase
+          .from("clans")
+          .select("id")
+          .eq("name", req.clan_name)
+          .single();
+
+        if (!existingClan) {
+          const { error: clanError } = await supabase.from("clans").insert({
+            name: req.clan_name,
+            leader_user_id: req.user_id,
+            leader_nickname: req.nickname,
+            description: req.description,
+          });
+
+          if (clanError) throw clanError;
+        }
+
+        // 3. Asignar rol de clan_leader
+        await supabase.from("user_roles").upsert({
+          user_id: req.user_id,
+          role: "clan_leader",
         });
+
+        // 4. Actualizar perfil del usuario
+        await supabase
+          .from("profiles")
+          .update({ is_clan_leader: true })
+          .eq("user_id", req.user_id);
+
+        toast.success(`✅ ${req.nickname} es ahora líder del clan "${req.clan_name}"`);
+      } else {
+        toast.success(`Solicitud de ${req.nickname} rechazada`);
       }
 
-      // Log moderation action
+      // Log de moderación
       await supabase.from("moderation_logs").insert({
-        admin_user_id: user!.id,
+        admin_user_id: user.id,
         admin_nickname: profile?.nickname ?? "Admin",
         target_user_id: req.user_id,
         target_nickname: req.nickname,
-        action: "Approved clan leader request",
+        action: action === "approved" ? "Approved clan leader" : "Rejected clan leader",
         reason: `Clan: ${req.clan_name}`,
       });
-    }
 
-    toast.success(action === "approved" ? `${req.nickname} aprobado como líder de ${req.clan_name}` : "Solicitud rechazada");
-    fetchRequests();
+    } catch (error: any) {
+      toast.error(error.message || "Error al procesar la solicitud");
+    } finally {
+      setProcessingId(null);
+      fetchRequests(); // Recargar lista
+    }
   };
 
-  if (loading) return <div className="text-center py-8 text-muted-foreground">Cargando solicitudes...</div>;
+  if (loading) {
+    return <div className="text-center py-12 text-muted-foreground">Cargando solicitudes de líderes...</div>;
+  }
 
   return (
-    <div className="space-y-4">
-      <h2 className="text-2xl font-bold text-foreground">Solicitudes de Líder de Clan</h2>
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-2xl font-bold text-foreground">Solicitudes de Líder de Clan</h2>
+          <p className="text-muted-foreground">Revisa y gestiona las solicitudes para crear nuevos clanes</p>
+        </div>
+        <Button variant="outline" size="sm" onClick={fetchRequests}>
+          <RefreshCw className="h-4 w-4 mr-2" />
+          Actualizar
+        </Button>
+      </div>
 
       {requests.length === 0 ? (
-        <p className="text-center text-muted-foreground py-8">No hay solicitudes.</p>
+        <div className="text-center py-16 bg-card border border-border rounded-xl">
+          <p className="text-muted-foreground">No hay solicitudes pendientes en este momento.</p>
+        </div>
       ) : (
-        <div className="border border-border rounded-lg overflow-hidden">
+        <div className="border border-border rounded-xl overflow-hidden bg-card">
           <Table>
             <TableHeader>
               <TableRow>
                 <TableHead>Nickname</TableHead>
-                <TableHead>Clan</TableHead>
-                <TableHead className="hidden md:table-cell">Email</TableHead>
+                <TableHead>Clan Solicitado</TableHead>
+                <TableHead className="hidden md:table-cell">Player ID</TableHead>
                 <TableHead className="hidden md:table-cell">Descripción</TableHead>
-                <TableHead>Estado</TableHead>
+                <TableHead>Fecha</TableHead>
                 <TableHead className="text-right">Acciones</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {requests.map((r) => (
-                <TableRow key={r.id}>
-                  <TableCell className="font-medium text-foreground">{r.nickname}</TableCell>
-                  <TableCell className="text-muted-foreground">{r.clan_name}</TableCell>
-                  <TableCell className="hidden md:table-cell text-muted-foreground text-sm">{r.email}</TableCell>
-                  <TableCell className="hidden md:table-cell text-muted-foreground text-sm max-w-[200px] truncate">{r.description || "—"}</TableCell>
-                  <TableCell>
-                    <Badge className={r.status === "approved" ? "bg-green-600/20 text-green-400" : r.status === "rejected" ? "bg-destructive/20 text-destructive" : "bg-primary/20 text-primary"}>
-                      {r.status}
-                    </Badge>
+              {requests.map((req) => (
+                <TableRow key={req.id}>
+                  <TableCell className="font-medium">{req.nickname}</TableCell>
+                  <TableCell className="font-semibold text-primary">{req.clan_name}</TableCell>
+                  <TableCell className="hidden md:table-cell text-muted-foreground">{req.player_id}</TableCell>
+                  <TableCell className="hidden md:table-cell text-muted-foreground max-w-xs truncate">
+                    {req.description || "—"}
+                  </TableCell>
+                  <TableCell className="text-sm text-muted-foreground">
+                    {new Date(req.created_at).toLocaleDateString("es")}
                   </TableCell>
                   <TableCell className="text-right">
-                    {r.status === "pending" && (
-                      <div className="flex justify-end gap-1">
-                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleAction(r, "approved")} title="Aprobar">
-                          <CheckCircle className="h-4 w-4 text-green-400" />
+                    {req.status === "pending" ? (
+                      <div className="flex justify-end gap-2">
+                        <Button
+                          variant="default"
+                          size="sm"
+                          className="bg-green-600 hover:bg-green-700"
+                          disabled={processingId === req.id}
+                          onClick={() => handleAction(req, "approved")}
+                        >
+                          <CheckCircle className="h-4 w-4 mr-1" />
+                          Aprobar
                         </Button>
-                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleAction(r, "rejected")} title="Rechazar">
-                          <XCircle className="h-4 w-4 text-destructive" />
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          disabled={processingId === req.id}
+                          onClick={() => handleAction(req, "rejected")}
+                        >
+                          <XCircle className="h-4 w-4 mr-1" />
+                          Rechazar
                         </Button>
                       </div>
+                    ) : (
+                      <Badge variant={req.status === "approved" ? "default" : "secondary"}>
+                        {req.status}
+                      </Badge>
                     )}
                   </TableCell>
                 </TableRow>
