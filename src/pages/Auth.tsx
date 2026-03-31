@@ -50,7 +50,6 @@ export default function Auth() {
     setForm((prev) => ({ ...prev, [key]: value }));
   };
 
-  // REGISTRO
   const handleSignup = async () => {
     if (!form.email || !form.password || !form.nickname || !form.playerId) {
       toast.error("Todos los campos son obligatorios");
@@ -111,7 +110,6 @@ export default function Auth() {
     }
   };
 
-  // LOGIN
   const handleLogin = async () => {
     if (!form.email || !form.password) {
       toast.error("Email y contraseña son obligatorios");
@@ -240,7 +238,7 @@ export default function Auth() {
           {loading ? "Procesando..." : mode === "login" ? "Iniciar Sesión" : "Crear Cuenta"}
         </Button>
 
-        {/* ENLACE DE OLVIDASTE TU CONTRASEÑA - AQUÍ ESTÁ */}
+        {/* Enlace de "¿Olvidaste tu contraseña?" */}
         {mode === "login" && (
           <p className="text-center text-sm text-zinc-400 mt-4">
             <Link 
