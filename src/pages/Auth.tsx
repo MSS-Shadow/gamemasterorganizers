@@ -25,7 +25,6 @@ export default function Auth() {
 
   const navigate = useNavigate();
 
-  // Cargar clanes existentes
   useEffect(() => {
     const loadClans = async () => {
       const { data, error } = await supabase
@@ -35,11 +34,7 @@ export default function Auth() {
         .not("clan", "eq", "")
         .order("clan");
 
-      if (error) {
-        console.error("Error cargando clanes:", error);
-        return;
-      }
-
+      if (error) return;
       const uniqueClans = [...new Set((data || []).map((p: any) => p.clan))].sort() as string[];
       setExistingClans(uniqueClans);
     };
@@ -57,7 +52,7 @@ export default function Auth() {
     }
 
     if (selectedClan === "") {
-      toast.error("Debes seleccionar un clan o la opción 'Sin clan'");
+      toast.error("Debes seleccionar un clan o 'Sin clan'");
       return;
     }
 
@@ -75,7 +70,7 @@ export default function Auth() {
       if (authError) throw authError;
 
       if (authData.user) {
-        const { error: profileError } = await supabase.from("profiles").insert({
+        await supabase.from("profiles").insert({
           id: authData.user.id,
           user_id: authData.user.id,
           email: form.email.trim().toLowerCase(),
@@ -86,8 +81,6 @@ export default function Auth() {
           clan: null,
         });
 
-        if (profileError) throw profileError;
-
         if (selectedClan !== "sin_clan") {
           await supabase.from("clan_join_requests").insert({
             user_id: authData.user.id,
@@ -95,13 +88,10 @@ export default function Auth() {
             player_id: form.playerId.trim(),
             clan_name: selectedClan,
           });
-          toast.success(`¡Registro exitoso! Solicitud enviada al clan "${selectedClan}"`);
+          toast.success(`Solicitud enviada al clan "${selectedClan}"`);
         } else {
-          toast.success("¡Cuenta creada con éxito! Revisa tu email para confirmar.");
+          toast.success("¡Cuenta creada! Revisa tu email.");
         }
-
-        setForm({ email: "", password: "", nickname: "", playerId: "", platform: "Mobile", country: "Uruguay" });
-        setSelectedClan("sin_clan");
       }
     } catch (error: any) {
       toast.error(error.message || "Error al registrarse");
@@ -126,7 +116,7 @@ export default function Auth() {
 
       if (error) throw error;
 
-      toast.success("¡Bienvenido de vuelta!");
+      toast.success("¡Bienvenido!");
       navigate("/");
     } catch (error: any) {
       toast.error(error.message || "Email o contraseña incorrectos");
@@ -137,14 +127,14 @@ export default function Auth() {
 
   return (
     <div className="min-h-screen bg-zinc-950 flex items-center justify-center p-4">
-      <div className="w-full max-w-md bg-zinc-900 rounded-3xl p-8 shadow-2xl">
+      <div className="w-full max-w-md bg-zinc-900 rounded-3xl p-6 md:p-8 shadow-2xl">
         <div className="flex justify-center mb-6">
           <Trophy className="w-16 h-16 text-yellow-400" />
         </div>
 
         <h1 className="text-3xl font-bold text-center text-white mb-1">Game Master</h1>
         <p className="text-center text-zinc-400 mb-8">
-          {mode === "login" ? "Inicia sesión para continuar" : "Únete a la comunidad de BloodStrike"}
+          {mode === "login" ? "Inicia sesión para continuar" : "Únete a la comunidad"}
         </p>
 
         <Input
@@ -155,7 +145,7 @@ export default function Auth() {
           className="mb-3"
         />
 
-        <div className="relative mb-3">
+        <div className="relative mb-4">
           <Input
             type={showPassword ? "text" : "password"}
             placeholder="Contraseña"
@@ -165,7 +155,7 @@ export default function Auth() {
           <button
             type="button"
             onClick={() => setShowPassword(!showPassword)}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-white"
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400"
           >
             {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
           </button>
@@ -180,7 +170,7 @@ export default function Auth() {
               className="mb-3"
             />
             <Input
-              placeholder="Player ID de BloodStrike"
+              placeholder="Player ID"
               value={form.playerId}
               onChange={(e) => updateForm("playerId", e.target.value)}
               className="mb-3"
@@ -223,9 +213,6 @@ export default function Auth() {
                   )}
                 </SelectContent>
               </Select>
-              <p className="text-xs text-zinc-500 mt-1.5">
-                {selectedClan !== "sin_clan" ? "Se enviará una solicitud al líder del clan" : "Puedes unirte a un clan más tarde"}
-              </p>
             </div>
           </>
         )}
@@ -238,25 +225,22 @@ export default function Auth() {
           {loading ? "Procesando..." : mode === "login" ? "Iniciar Sesión" : "Crear Cuenta"}
         </Button>
 
-        {/* Enlace de "¿Olvidaste tu contraseña?" */}
+        {/* Enlace de olvidaste contraseña */}
         {mode === "login" && (
           <p className="text-center text-sm text-zinc-400 mt-4">
-            <Link 
-              to="/auth/forgot-password" 
-              className="text-yellow-400 hover:underline font-medium"
-            >
+            <Link to="/auth/forgot-password" className="text-yellow-400 hover:underline">
               ¿Olvidaste tu contraseña?
             </Link>
           </p>
         )}
 
         <p className="text-center text-sm text-zinc-400 mt-6">
-          {mode === "login" ? "¿No tienes cuenta?" : "¿Ya tienes una cuenta?"}
+          {mode === "login" ? "¿No tienes cuenta?" : "¿Ya tienes cuenta?"}
           <button
             onClick={() => setMode(mode === "login" ? "signup" : "login")}
-            className="text-blue-400 hover:underline font-medium ml-1"
+            className="text-blue-400 hover:underline ml-1"
           >
-            {mode === "login" ? "Regístrate gratis" : "Inicia sesión"}
+            {mode === "login" ? "Regístrate" : "Inicia sesión"}
           </button>
         </p>
       </div>
