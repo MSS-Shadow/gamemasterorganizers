@@ -73,8 +73,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                 <User className="h-4 w-4" />
               </div>
               <div className="text-sm">
-                <p className="font-medium text-white">{profile?.nickname || "Jugador"}</p>
-                <p className="text-xs text-zinc-500">Ver perfil</p>
+                <p className="font-medium text-white">{profile?.nickname || "Mi Perfil"}</p>
               </div>
             </Link>
           ) : (
@@ -89,7 +88,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         </div>
       </aside>
 
-      {/* Mobile Header */}
+      {/* Mobile Header - Mejorado */}
       <header className="lg:hidden fixed top-0 left-0 right-0 z-50 bg-zinc-900 border-b border-zinc-800">
         <div className="flex items-center justify-between px-4 h-16">
           <Link to="/" className="flex items-center gap-2">
@@ -99,12 +98,27 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             <span className="font-bold text-xl tracking-tight text-white">Game Master</span>
           </Link>
 
-          <button
-            onClick={() => setMobileOpen(!mobileOpen)}
-            className="p-2 text-white hover:bg-zinc-800 rounded-lg"
-          >
-            {mobileOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-          </button>
+          <div className="flex items-center gap-4">
+            {user ? (
+              <Link to="/profile" className="text-white p-1">
+                <User className="h-6 w-6" />
+              </Link>
+            ) : (
+              <Link 
+                to="/auth" 
+                className="text-yellow-400 font-medium text-sm flex items-center gap-1"
+              >
+                Iniciar Sesión
+              </Link>
+            )}
+
+            <button
+              onClick={() => setMobileOpen(!mobileOpen)}
+              className="p-2 text-white hover:bg-zinc-800 rounded-lg transition-colors"
+            >
+              {mobileOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+            </button>
+          </div>
         </div>
       </header>
 
@@ -140,7 +154,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       </AnimatePresence>
 
       {/* Main Content */}
-      <main className="flex-1 lg:ml-64 pt-16 lg:pt-0 min-h-screen bg-zinc-950">
+      <main className="flex-1 lg:ml-64 pt-16 lg:pt-0 min-h-screen">
         <div className="p-4 md:p-6 lg:p-8 max-w-7xl mx-auto">
           {children}
         </div>
