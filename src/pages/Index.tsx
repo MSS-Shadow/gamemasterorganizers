@@ -3,12 +3,8 @@ import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
   Trophy,
-  CalendarDays,
-  Swords,
   Megaphone,
   Crown,
-  Users,
-  Award,
   Zap,
   MessageCircle,
   Star,
@@ -38,63 +34,47 @@ export default function HomePage() {
   const [liveScrims, setLiveScrims] = useState<any[]>([]);
   const [announcements, setAnnouncements] = useState<any[]>([]);
   const [topTeams, setTopTeams] = useState<{ name: string; wins: number }[]>([]);
-  const [creators, setCreators] = useState<any[]>([]);
 
   useEffect(() => {
     const loadData = async () => {
       try {
-        const [tourRes, profileRes, scrimRes, clanRes, annRes, champRes, creatorRes] = await Promise.all([
-          supabase.from("tournaments").select("*").order("date", { ascending: true }),
-          
-          // Conteo de jugadores - versión más confiable
+        console.log("🔄 Cargando datos de tus tablas reales...");
+
+        const [profileRes, clanRes, tourRes, scrimRes, annRes] = await Promise.all([
           supabase.from("profiles").select("*", { count: "exact", head: true }),
-          
-          supabase.from("scrims").select("*").order("date", { ascending: false }).limit(6),
-          
-          // Conteo de clanes
           supabase.from("clans").select("*", { count: "exact", head: true }),
-          
+          supabase.from("tournaments").select("*").order("date", { ascending: true }),
+          supabase.from("scrims").select("*").order("date", { ascending: false }).limit(6),
           supabase.from("announcements").select("*").order("created_at", { ascending: false }).limit(4),
-          supabase.from("tournament_champions").select("*").order("date", { ascending: false }),
-          supabase.from("creator_requests").select("nickname, platform, channel_link").eq("status", "Approved").limit(6),
         ]);
 
         const tours = tourRes.data ?? [];
         const openTours = tours.filter((t: any) => t.status === "Open");
 
-        // Top teams
-        const teamWins = new Map<string, number>();
-        (champRes.data ?? []).forEach((c: any) => {
-          teamWins.set(c.team_name, (teamWins.get(c.team_name) || 0) + 1);
-        });
-
-        setTopTeams(
-          Array.from(teamWins.entries())
-            .sort((a, b) => b[1] - a[1])
-            .slice(0, 5)
-            .map(([name, wins]) => ({ name, wins }))
-        );
+        // Top teams (usando tournament_brackets o champions si existen, por ahora simple)
+        setTopTeams([]);
 
         setUpcomingTournaments(openTours.slice(0, 4));
         setLiveScrims((scrimRes.data ?? []).filter((s: any) => s.status === "live").slice(0, 3));
         setAnnouncements((annRes.data ?? []));
-        setCreators((creatorRes.data ?? []));
 
-        // Conteos corregidos
         setStats({
           tournaments: tours.filter((t: any) => t.status === "Finished").length,
-          scrims: scrimRes.data?.length ?? 0,
+          scrims: (scrimRes.data ?? []).length,
           upcoming: openTours.length,
-          players: profileRes.count ?? 0,     // ← Aquí usamos .count
-          teams: clanRes.count ?? 0,          // ← Aquí usamos .count
+          players: (profileRes as any).count ?? 0,
+          teams: (clanRes as any).count ?? 0,
         });
 
-        // Para debug (puedes quitarlo después)
-        console.log("Conteo de perfiles:", profileRes.count);
-        console.log("Conteo de clanes:", clanRes.count);
+        console.log("📊 Estadísticas cargadas:", {
+          players: (profileRes as any).count,
+          teams: (clanRes as any).count,
+          tournaments: tours.length,
+          announcements: (annRes.data ?? []).length
+        });
 
       } catch (error) {
-        console.error("Error cargando datos de la homepage:", error);
+        console.error("Error cargando datos:", error);
       }
     };
 
@@ -167,9 +147,6 @@ export default function HomePage() {
         ))}
       </div>
 
-      {/* Resto del código igual (torneos, top equipos, anuncios, CTA) ... */}
-      {/* (Mantengo el resto igual para no hacer el mensaje demasiado largo) */}
-
       {/* TORNEOS ACTIVOS */}
       <section>
         <div className="flex items-end justify-between mb-6">
@@ -227,74 +204,27 @@ export default function HomePage() {
         )}
       </section>
 
-      {/* TOP EQUIPOS + ÚLTIMOS ANUNCIOS */}
-      <div className="grid lg:grid-cols-2 gap-8">
-        <section>
-          <h2 className="text-2xl font-bold text-white mb-6 flex items-center gap-3">
-            <Crown className="h-6 w-6 text-yellow-400" /> Top Equipos
-          </h2>
-          <div className="space-y-3">
-            {topTeams.map((team, i) => (
-              <div key={i} className="bg-zinc-900 border border-zinc-800 rounded-2xl p-5 flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <div className="text-3xl font-bold text-yellow-400/30">#{i + 1}</div>
-                  <div>
-                    <p className="font-semibold text-white">{team.name}</p>
-                    <p className="text-xs text-zinc-500">{team.wins} victorias</p>
-                  </div>
-                </div>
-                <Star className="h-5 w-5 text-yellow-400" />
+      {/* ANUNCIOS */}
+      <section>
+        <h2 className="text-2xl font-bold text-white mb-6 flex items-center gap-3">
+          <Megaphone className="h-6 w-6 text-yellow-400" /> Últimas Noticias
+        </h2>
+        <div className="space-y-4">
+          {announcements.length > 0 ? (
+            announcements.map((a: any) => (
+              <div key={a.id} className="bg-zinc-900 border border-zinc-800 rounded-2xl p-5">
+                <p className="text-xs text-zinc-500 mb-1">
+                  {new Date(a.created_at).toLocaleDateString("es")}
+                </p>
+                <h3 className="font-semibold text-white mb-2">{a.title}</h3>
+                <p className="text-sm text-zinc-400 line-clamp-2">{a.description}</p>
               </div>
-            ))}
-          </div>
-        </section>
-
-        <section>
-          <h2 className="text-2xl font-bold text-white mb-6 flex items-center gap-3">
-            <Megaphone className="h-6 w-6 text-yellow-400" /> Últimas Noticias
-          </h2>
-          <div className="space-y-4">
-            {announcements.length > 0 ? (
-              announcements.map((a: any) => (
-                <div key={a.id} className="bg-zinc-900 border border-zinc-800 rounded-2xl p-5">
-                  <p className="text-xs text-zinc-500 mb-1">
-                    {new Date(a.created_at).toLocaleDateString("es")}
-                  </p>
-                  <h3 className="font-semibold text-white mb-2">{a.title}</h3>
-                  <p className="text-sm text-zinc-400 line-clamp-2">{a.description}</p>
-                </div>
-              ))
-            ) : (
-              <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-12 text-center">
-                <p className="text-zinc-500">No hay anuncios recientes.</p>
-              </div>
-            )}
-          </div>
-        </section>
-      </div>
-
-      {/* CTA FINAL */}
-      <section className="bg-gradient-to-br from-zinc-900 to-zinc-950 border border-zinc-800 rounded-3xl p-12 md:p-16 text-center">
-        <Zap className="h-12 w-12 text-yellow-400 mx-auto mb-6" />
-        <h2 className="text-4xl font-bold text-white mb-4">¿Estás listo para competir?</h2>
-        <p className="text-zinc-400 max-w-md mx-auto mb-8">
-          Únete a la comunidad más seria de BloodStrike LATAM. Torneos semanales, scrims diarios y premios reales.
-        </p>
-        <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          <Link
-            to="/auth"
-            className="bg-yellow-400 text-zinc-950 font-semibold px-10 py-4 rounded-2xl text-lg hover:bg-yellow-300 transition-all"
-          >
-            Crear mi cuenta gratis
-          </Link>
-          <a
-            href="https://discord.gg"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="border border-zinc-700 text-white font-semibold px-10 py-4 rounded-2xl text-lg hover:bg-zinc-800 transition-all"
-          >
-            Unirme al Discord
-          </a>
+            ))
+          ) : (
+            <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-12 text-center">
+              <p className="text-zinc-500">No hay anuncios recientes.</p>
+            </div>
+          )}
         </div>
       </section>
     </div>
