@@ -47,10 +47,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         .single();
 
       if (error) {
-        console.warn("No se pudo cargar el perfil:", error.message);
+        console.warn("⚠️ No se pudo cargar el perfil:", error.message);
         setProfile(null);
       } else {
         setProfile(data);
+        console.log("✅ Perfil cargado:", data?.nickname);
       }
     } catch (err) {
       console.warn("Error en fetchProfile:", err);
@@ -58,15 +59,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  // Temporal: como no tienes tabla user_roles, asumimos roles básicos
-  const fetchRoles = async (userId: string) => {
+  // Roles simplificados (sin tabla user_roles)
+  const fetchRoles = async (currentUser: User | null) => {
     try {
-      // Por ahora solo verificamos si es el usuario administrador manualmente
-      // Puedes cambiar "tu-email@ejemplo.com" por tu correo real
-      const isAdminUser = user?.email === "portadormato.com"; // ← CAMBIA ESTO por tu correo
+      if (!currentUser?.email) {
+        setRoles([]);
+        return;
+      }
+
+      // ←←← CAMBIA ESTO POR TU EMAIL REAL DE ADMINISTRADOR
+      const isAdminUser = currentUser.email === "TU_EMAIL_ADMIN@EJEMPLO.COM";
 
       setRoles(isAdminUser ? ["admin"] : []);
-      console.log("Roles asignados:", isAdminUser ? ["admin"] : []);
+      console.log(`👤 Roles asignados: ${isAdminUser ? "ADMIN" : "Usuario normal"}`);
     } catch (err) {
       console.warn("Error en fetchRoles:", err);
       setRoles([]);
@@ -75,7 +80,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const refreshProfile = async () => {
     if (user) {
-      await Promise.all([fetchProfile(user.id), fetchRoles(user.id)]);
+      await Promise.all([fetchProfile(user.id), fetchRoles(user)]);
     }
   };
 
@@ -87,7 +92,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (session?.user) {
         setTimeout(() => {
           fetchProfile(session.user.id);
-          fetchRoles(session.user.id);
+          fetchRoles(session.user);
         }, 100);
       } else {
         setProfile(null);
@@ -96,13 +101,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setLoading(false);
     });
 
-    // Cargar sesión inicial
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {
         fetchProfile(session.user.id);
-        fetchRoles(session.user.id);
+        fetchRoles(session.user);
       }
       setLoading(false);
     });
