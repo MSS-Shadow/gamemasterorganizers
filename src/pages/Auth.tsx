@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Trophy, Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
+import { Link } from "react-router-dom";   // ← Agregado para el enlace
 
 export default function Auth() {
   const [mode, setMode] = useState<"login" | "signup">("login");
@@ -43,7 +44,6 @@ export default function Auth() {
       const uniqueClans = [...new Set((data || []).map((p: any) => p.clan))].sort() as string[];
       setExistingClans(uniqueClans);
     };
-
     loadClans();
   }, []);
 
@@ -66,7 +66,6 @@ export default function Auth() {
     setLoading(true);
 
     try {
-      // 1. Crear usuario
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: form.email.trim().toLowerCase(),
         password: form.password,
@@ -78,7 +77,6 @@ export default function Auth() {
       if (authError) throw authError;
 
       if (authData.user) {
-        // 2. Crear perfil (sin clan inicialmente)
         const { error: profileError } = await supabase.from("profiles").insert({
           id: authData.user.id,
           user_id: authData.user.id,
@@ -92,7 +90,6 @@ export default function Auth() {
 
         if (profileError) throw profileError;
 
-        // 3. Crear solicitud si eligió un clan existente
         if (selectedClan !== "sin_clan") {
           const { error: requestError } = await supabase.from("clan_join_requests").insert({
             user_id: authData.user.id,
@@ -103,7 +100,6 @@ export default function Auth() {
 
           if (requestError) {
             console.error("Error creando solicitud:", requestError);
-            // No bloqueamos el registro aunque falle la solicitud
           } else {
             toast.success(`¡Registro exitoso! Solicitud enviada al clan "${selectedClan}"`);
           }
@@ -241,30 +237,42 @@ export default function Auth() {
                 </SelectContent>
               </Select>
               <p className="text-xs text-zinc-500 mt-1.5">
-                {selectedClan !== "sin_clan" 
-                  ? "Se enviará una solicitud al líder del clan" 
+                {selectedClan !== "sin_clan"
+                  ? "Se enviará una solicitud al líder del clan"
                   : "Puedes unirte a un clan más tarde"}
               </p>
             </div>
           </>
         )}
 
-        <Button 
-          onClick={mode === "login" ? handleLogin : handleSignup} 
+        <Button
+          onClick={mode === "login" ? handleLogin : handleSignup}
           disabled={loading}
           className="w-full py-6 text-base font-semibold"
         >
-          {loading 
-            ? "Procesando..." 
-            : mode === "login" 
-              ? "Iniciar Sesión" 
+          {loading
+            ? "Procesando..."
+            : mode === "login"
+              ? "Iniciar Sesión"
               : "Crear Cuenta"}
         </Button>
 
+        {/* ←←←←← ENLACE DE OLVIDASTE TU CONTRASEÑA ←←←←← */}
+        {mode === "login" && (
+          <p className="text-center text-sm text-zinc-400 mt-4">
+            <Link 
+              to="/auth/forgot-password" 
+              className="text-yellow-400 hover:underline font-medium"
+            >
+              ¿Olvidaste tu contraseña?
+            </Link>
+          </p>
+        )}
+
         <p className="text-center text-sm text-zinc-400 mt-6">
-          {mode === "login" ? "¿No tienes cuenta?" : "¿Ya tienes una cuenta?"} 
-          <button 
-            onClick={() => setMode(mode === "login" ? "signup" : "login")} 
+          {mode === "login" ? "¿No tienes cuenta?" : "¿Ya tienes una cuenta?"}
+          <button
+            onClick={() => setMode(mode === "login" ? "signup" : "login")}
             className="text-blue-400 hover:underline font-medium ml-1"
           >
             {mode === "login" ? "Regístrate gratis" : "Inicia sesión"}
