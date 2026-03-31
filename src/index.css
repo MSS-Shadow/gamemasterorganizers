@@ -3,47 +3,44 @@
 @tailwind utilities;
 
 @import url('https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
 @layer base {
   :root {
-    --background: 224 71% 4%;
-    --foreground: 210 40% 98%;
-
-    --card: 223 47% 11%;
-    --card-foreground: 210 40% 98%;
-
-    --popover: 223 47% 11%;
-    --popover-foreground: 210 40% 98%;
-
-    --primary: 47 98% 51%;
-    --primary-foreground: 47 98% 4%;
-
-    --secondary: 223 47% 11%;
-    --secondary-foreground: 210 40% 98%;
-
-    --muted: 223 47% 11%;
-    --muted-foreground: 215 20% 65%;
-
-    --accent: 217 91% 60%;
-    --accent-foreground: 210 40% 98%;
-
+    --background: 240 10% 3.9%;      /* Fondo principal muy oscuro */
+    --foreground: 0 0% 98%;         /* Texto principal */
+    --card: 240 10% 8%;             /* Cards */
+    --card-foreground: 0 0% 98%;
+    --popover: 240 10% 8%;
+    --popover-foreground: 0 0% 98%;
+    
+    /* Acento principal - Amarillo dorado premium */
+    --primary: 45 94% 58%;          /* Mejor amarillo para gaming serio */
+    --primary-foreground: 240 10% 4%;
+    
+    --secondary: 240 10% 12%;
+    --secondary-foreground: 0 0% 98%;
+    
+    --muted: 240 10% 12%;
+    --muted-foreground: 240 5% 65%;
+    
+    --accent: 45 94% 58%;
+    --accent-foreground: 240 10% 4%;
+    
     --destructive: 0 84% 60%;
-    --destructive-foreground: 210 40% 98%;
-
-    --border: 217 33% 17%;
-    --input: 217 33% 17%;
-    --ring: 47 98% 51%;
-
-    --radius: 0.5rem;
-
-    --sidebar-background: 224 71% 4%;
-    --sidebar-foreground: 215 20% 65%;
-    --sidebar-primary: 47 98% 51%;
-    --sidebar-primary-foreground: 47 98% 4%;
-    --sidebar-accent: 223 47% 11%;
-    --sidebar-accent-foreground: 210 40% 98%;
-    --sidebar-border: 217 33% 17%;
-    --sidebar-ring: 47 98% 51%;
+    --destructive-foreground: 0 0% 98%;
+    
+    --border: 240 10% 15%;
+    --input: 240 10% 15%;
+    --ring: 45 94% 58%;
+    
+    --radius: 0.75rem;              /* Bordes más redondeados y modernos */
+    
+    /* Sidebar */
+    --sidebar-background: 240 10% 3.9%;
+    --sidebar-foreground: 240 5% 70%;
+    --sidebar-primary: 45 94% 58%;
+    --sidebar-primary-foreground: 240 10% 4%;
   }
 }
 
@@ -51,13 +48,33 @@
   * {
     @apply border-border;
   }
-
+  
   body {
-    @apply bg-background text-foreground font-rubik antialiased;
+    @apply bg-background text-foreground antialiased;
+    font-family: 'Inter', system_ui, sans-serif;
   }
-
+  
+  .font-rubik {
+    font-family: 'Rubik', sans-serif;
+  }
+  
   h1, h2, h3, h4, h5, h6 {
-    @apply tracking-tight;
+    @apply tracking-[-0.02em] font-semibold;
+  }
+}
+
+@layer components {
+  .card {
+    @apply bg-card border border-border rounded-3xl overflow-hidden;
+  }
+  
+  .section-title {
+    @apply text-3xl font-bold tracking-tight text-foreground;
+  }
+  
+  .accent-button {
+    @apply bg-[hsl(var(--primary))] hover:bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] 
+           font-semibold transition-all duration-200 active:scale-[0.985];
   }
 }
 
@@ -65,8 +82,24 @@
   .text-balance {
     text-wrap: balance;
   }
-
+  
   .tabular-nums {
     font-variant-numeric: tabular-nums;
+  }
+  
+  /* Scrollbar elegante */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: hsl(240 10% 12%);
+  }
+  ::-webkit-scrollbar-thumb {
+    background: hsl(240 5% 40%);
+    border-radius: 20px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: hsl(45 94% 58%);
   }
 }
