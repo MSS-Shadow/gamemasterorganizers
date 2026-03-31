@@ -5,13 +5,22 @@ import type { Database } from './types';
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 
-// Import the supabase client like this:
-// import { supabase } from "@/integrations/supabase/client";
+// Seguridad: si faltan las variables, mostramos error claro pero no rompemos toda la app
+if (!SUPABASE_URL) {
+  console.error("❌ VITE_SUPABASE_URL no está definida en las variables de entorno");
+}
+if (!SUPABASE_PUBLISHABLE_KEY) {
+  console.error("❌ VITE_SUPABASE_PUBLISHABLE_KEY no está definida en las variables de entorno");
+}
 
-export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
-  auth: {
-    storage: localStorage,
-    persistSession: true,
-    autoRefreshToken: true,
+export const supabase = createClient<Database>(
+  SUPABASE_URL || "https://placeholder.supabase.co",
+  SUPABASE_PUBLISHABLE_KEY || "placeholder-key",
+  {
+    auth: {
+      storage: localStorage,
+      persistSession: true,
+      autoRefreshToken: true,
+    }
   }
-});
+);
