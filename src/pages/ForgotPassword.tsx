@@ -25,7 +25,7 @@ export default function ForgotPassword() {
     if (error) {
       toast.error(error.message);
     } else {
-      toast.success("✅ Te enviamos un link de recuperación. Revisa tu email (incluido spam).");
+      toast.success("✅ Te enviamos un link de recuperación. Revisa tu email.");
     }
   };
 
@@ -58,11 +58,6 @@ export default function ForgotPassword() {
             {loading ? "Enviando link..." : "Enviar link de recuperación"}
           </Button>
         </form>
-
-        <p className="text-center text-sm text-zinc-500 mt-6">
-          ¿Ya recordaste tu contraseña?{" "}
-          <Link to="/auth" className="text-yellow-400 hover:underline">Inicia sesión</Link>
-        </p>
       </div>
     </div>
   );
