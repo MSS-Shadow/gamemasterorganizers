@@ -31,46 +31,49 @@ export default function HomePage() {
   });
   
   const [upcomingTournaments, setUpcomingTournaments] = useState<any[]>([]);
-  const [liveScrims, setLiveScrims] = useState<any[]>([]);
   const [announcements, setAnnouncements] = useState<any[]>([]);
-  const [topTeams, setTopTeams] = useState<{ name: string; wins: number }[]>([]);
 
   useEffect(() => {
     const loadData = async () => {
       try {
-        console.log("🔄 Cargando datos de tus tablas reales...");
+        console.log("🔄 Cargando datos...");
 
         const [profileRes, clanRes, tourRes, scrimRes, annRes] = await Promise.all([
-          supabase.from("profiles").select("*", { count: "exact", head: true }),
-          supabase.from("clans").select("*", { count: "exact", head: true }),
-          supabase.from("tournaments").select("*").order("date", { ascending: true }),
-          supabase.from("scrims").select("*").order("date", { ascending: false }).limit(6),
-          supabase.from("announcements").select("*").order("created_at", { ascending: false }).limit(4),
+          supabase.from("profiles").select("*", { count: "exact", head: true }).catch(() => ({ count: 0 })),
+          supabase.from("clans").select("*", { count: "exact", head: true }).catch(() => ({ count: 0 })),
+          
+          // Consulta simple para tournaments (sin order por 'date' si no existe)
+          supabase.from("tournaments").select("*").limit(10).catch(() => ({ data: [] })),
+          
+          // Consulta simple para scrims
+          supabase.from("scrims").select("*").limit(6).catch(() => ({ data: [] })),
+          
+          supabase.from("announcements").select("*").order("created_at", { ascending: false }).limit(4).catch(() => ({ data: [] })),
         ]);
 
         const tours = tourRes.data ?? [];
-        const openTours = tours.filter((t: any) => t.status === "Open");
-
-        // Top teams (usando tournament_brackets o champions si existen, por ahora simple)
-        setTopTeams([]);
+        const openTours = tours.filter((t: any) => 
+          t.status === "Open" || t.status?.toLowerCase() === "open"
+        );
 
         setUpcomingTournaments(openTours.slice(0, 4));
-        setLiveScrims((scrimRes.data ?? []).filter((s: any) => s.status === "live").slice(0, 3));
         setAnnouncements((annRes.data ?? []));
 
         setStats({
-          tournaments: tours.filter((t: any) => t.status === "Finished").length,
+          tournaments: tours.filter((t: any) => 
+            t.status === "Finished" || t.status?.toLowerCase() === "finished"
+          ).length,
           scrims: (scrimRes.data ?? []).length,
           upcoming: openTours.length,
           players: (profileRes as any).count ?? 0,
           teams: (clanRes as any).count ?? 0,
         });
 
-        console.log("📊 Estadísticas cargadas:", {
+        console.log("📊 Estadísticas finales:", {
           players: (profileRes as any).count,
           teams: (clanRes as any).count,
           tournaments: tours.length,
-          announcements: (annRes.data ?? []).length
+          scrims: (scrimRes.data ?? []).length
         });
 
       } catch (error) {
@@ -83,7 +86,7 @@ export default function HomePage() {
 
   return (
     <div className="space-y-16">
-      {/* HERO SECTION */}
+      {/* HERO SECTION - igual que antes */}
       <section className="relative min-h-[85vh] flex items-center justify-center overflow-hidden rounded-3xl bg-zinc-900 border border-zinc-800">
         <div className="absolute inset-0 bg-[radial-gradient(at_center,#eab30810_0%,transparent_70%)]" />
        
@@ -154,46 +157,17 @@ export default function HomePage() {
             <h2 className="text-3xl font-bold text-white">Torneos Activos</h2>
             <p className="text-zinc-500">Inscríbete antes de que se llenen</p>
           </div>
-          <Link 
-            to="/tournaments" 
-            className="text-yellow-400 hover:underline text-sm flex items-center gap-1"
-          >
-            Ver todos 
-            <ChevronRight className="h-4 w-4" />
+          <Link to="/tournaments" className="text-yellow-400 hover:underline text-sm flex items-center gap-1">
+            Ver todos <ChevronRight className="h-4 w-4" />
           </Link>
         </div>
 
         {upcomingTournaments.length > 0 ? (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {upcomingTournaments.map((t, i) => (
-              <motion.div
-                key={t.id}
-                initial="hidden"
-                animate="visible"
-                variants={fadeUp}
-                custom={i}
-                className="bg-zinc-900 border border-zinc-800 rounded-3xl p-6 hover:border-yellow-400/30 transition-all group"
-              >
-                <div className="flex justify-between items-start mb-4">
-                  <div>
-                    <h3 className="font-semibold text-lg text-white group-hover:text-yellow-400 transition-colors">
-                      {t.name}
-                    </h3>
-                    <p className="text-sm text-zinc-500">{t.mode}</p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-xs text-zinc-500">Fecha</p>
-                    <p className="text-sm font-medium">
-                      {new Date(t.date).toLocaleDateString("es", { month: "short", day: "numeric" })}
-                    </p>
-                  </div>
-                </div>
-                <Link
-                  to={`/tournaments/${encodeURIComponent(t.name)}`}
-                  className="block w-full bg-yellow-400 text-zinc-950 font-semibold py-3 rounded-2xl text-center hover:bg-yellow-300 transition-colors"
-                >
-                  Inscribirse ahora
-                </Link>
+              <motion.div key={t.id} className="bg-zinc-900 border border-zinc-800 rounded-3xl p-6">
+                <h3 className="font-semibold text-white">{t.name}</h3>
+                <p className="text-sm text-zinc-500">{t.mode}</p>
               </motion.div>
             ))}
           </div>
@@ -210,17 +184,13 @@ export default function HomePage() {
           <Megaphone className="h-6 w-6 text-yellow-400" /> Últimas Noticias
         </h2>
         <div className="space-y-4">
-          {announcements.length > 0 ? (
-            announcements.map((a: any) => (
-              <div key={a.id} className="bg-zinc-900 border border-zinc-800 rounded-2xl p-5">
-                <p className="text-xs text-zinc-500 mb-1">
-                  {new Date(a.created_at).toLocaleDateString("es")}
-                </p>
-                <h3 className="font-semibold text-white mb-2">{a.title}</h3>
-                <p className="text-sm text-zinc-400 line-clamp-2">{a.description}</p>
-              </div>
-            ))
-          ) : (
+          {announcements.length > 0 ? announcements.map((a: any) => (
+            <div key={a.id} className="bg-zinc-900 border border-zinc-800 rounded-2xl p-5">
+              <p className="text-xs text-zinc-500 mb-1">{new Date(a.created_at).toLocaleDateString("es")}</p>
+              <h3 className="font-semibold text-white mb-2">{a.title}</h3>
+              <p className="text-sm text-zinc-400">{a.description}</p>
+            </div>
+          )) : (
             <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-12 text-center">
               <p className="text-zinc-500">No hay anuncios recientes.</p>
             </div>
