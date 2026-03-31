@@ -4,12 +4,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Trophy } from "lucide-react";
+import { Trophy, Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
 
 export default function Auth() {
   const [mode, setMode] = useState<"login" | "signup">("login");
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const [existingClans, setExistingClans] = useState<string[]>([]);
   const [selectedClan, setSelectedClan] = useState<string>("sin_clan");
 
@@ -31,15 +32,16 @@ export default function Auth() {
         .from("profiles")
         .select("clan")
         .not("clan", "is", null)
-        .not("clan", "eq", "");
+        .not("clan", "eq", "")
+        .order("clan");
 
       if (error) {
         console.error("Error cargando clanes:", error);
         return;
       }
 
-      const clans = [...new Set((data || []).map((p: any) => p.clan))].sort() as string[];
-      setExistingClans(clans);
+      const uniqueClans = [...new Set((data || []).map((p: any) => p.clan))].sort() as string[];
+      setExistingClans(uniqueClans);
     };
 
     loadClans();
@@ -49,33 +51,38 @@ export default function Auth() {
     setForm((prev) => ({ ...prev, [key]: value }));
   };
 
-  // Registro
+  // ==================== REGISTRO ====================
   const handleSignup = async () => {
     if (!form.email || !form.password || !form.nickname || !form.playerId) {
       toast.error("Todos los campos son obligatorios");
       return;
     }
 
+    if (selectedClan === "") {
+      toast.error("Debes seleccionar un clan o la opción 'Sin clan'");
+      return;
+    }
+
     setLoading(true);
 
     try {
-      // 1. Crear usuario en Supabase Auth
+      // 1. Crear usuario
       const { data: authData, error: authError } = await supabase.auth.signUp({
-        email: form.email.trim(),
+        email: form.email.trim().toLowerCase(),
         password: form.password,
         options: {
-          emailRedirectTo: `${window.location.origin}/auth`,
+          emailRedirectTo: window.location.origin,
         },
       });
 
       if (authError) throw authError;
 
       if (authData.user) {
-        // 2. Crear perfil (sin clan por ahora)
-        const { error: profileError } = await supabase.from("profiles").upsert({
+        // 2. Crear perfil (sin clan inicialmente)
+        const { error: profileError } = await supabase.from("profiles").insert({
           id: authData.user.id,
           user_id: authData.user.id,
-          email: form.email.trim(),
+          email: form.email.trim().toLowerCase(),
           nickname: form.nickname.trim(),
           player_id: form.playerId.trim(),
           platform: form.platform,
@@ -85,24 +92,28 @@ export default function Auth() {
 
         if (profileError) throw profileError;
 
-        // 3. Si eligió un clan existente → crear solicitud
-        if (selectedClan !== "sin_clan" && selectedClan !== "") {
+        // 3. Crear solicitud si eligió un clan existente
+        if (selectedClan !== "sin_clan") {
           const { error: requestError } = await supabase.from("clan_join_requests").insert({
             user_id: authData.user.id,
             nickname: form.nickname.trim(),
             player_id: form.playerId.trim(),
             clan_name: selectedClan,
-            status: "pending",
           });
 
           if (requestError) {
-            console.error("Error creando solicitud de clan:", requestError);
+            console.error("Error creando solicitud:", requestError);
+            // No bloqueamos el registro aunque falle la solicitud
           } else {
-            toast.success(`Solicitud enviada al líder del clan "${selectedClan}"`);
+            toast.success(`¡Registro exitoso! Solicitud enviada al clan "${selectedClan}"`);
           }
         } else {
-          toast.success("¡Registro exitoso! Revisa tu correo para confirmar la cuenta.");
+          toast.success("¡Cuenta creada con éxito! Revisa tu email para confirmar.");
         }
+
+        // Limpiar formulario
+        setForm({ email: "", password: "", nickname: "", playerId: "", platform: "Mobile", country: "Uruguay" });
+        setSelectedClan("sin_clan");
       }
     } catch (error: any) {
       toast.error(error.message || "Error al registrarse");
@@ -111,7 +122,7 @@ export default function Auth() {
     }
   };
 
-  // Login (simple)
+  // ==================== LOGIN ====================
   const handleLogin = async () => {
     if (!form.email || !form.password) {
       toast.error("Email y contraseña son obligatorios");
@@ -122,16 +133,16 @@ export default function Auth() {
 
     try {
       const { error } = await supabase.auth.signInWithPassword({
-        email: form.email.trim(),
+        email: form.email.trim().toLowerCase(),
         password: form.password,
       });
 
       if (error) throw error;
 
-      toast.success("¡Inicio de sesión exitoso!");
+      toast.success("¡Bienvenido de vuelta!");
       navigate("/");
     } catch (error: any) {
-      toast.error(error.message || "Error al iniciar sesión");
+      toast.error(error.message || "Email o contraseña incorrectos");
     } finally {
       setLoading(false);
     }
@@ -139,16 +150,17 @@ export default function Auth() {
 
   return (
     <div className="min-h-screen bg-zinc-950 flex items-center justify-center p-4">
-      <div className="w-full max-w-md bg-zinc-900 rounded-2xl p-8 shadow-xl">
+      <div className="w-full max-w-md bg-zinc-900 rounded-3xl p-8 shadow-2xl">
         <div className="flex justify-center mb-6">
-          <Trophy className="w-14 h-14 text-yellow-400" />
+          <Trophy className="w-16 h-16 text-yellow-400" />
         </div>
 
-        <h1 className="text-3xl font-bold text-center text-white mb-1">Game Master Organizers</h1>
+        <h1 className="text-3xl font-bold text-center text-white mb-1">Game Master</h1>
         <p className="text-center text-zinc-400 mb-8">
-          {mode === "login" ? "Inicia sesión" : "Crea tu cuenta de jugador"}
+          {mode === "login" ? "Inicia sesión para continuar" : "Únete a la comunidad de BloodStrike"}
         </p>
 
+        {/* Email */}
         <Input
           type="email"
           placeholder="Email"
@@ -157,14 +169,24 @@ export default function Auth() {
           className="mb-3"
         />
 
-        <Input
-          type="password"
-          placeholder="Contraseña"
-          value={form.password}
-          onChange={(e) => updateForm("password", e.target.value)}
-          className="mb-3"
-        />
+        {/* Password */}
+        <div className="relative mb-3">
+          <Input
+            type={showPassword ? "text" : "password"}
+            placeholder="Contraseña"
+            value={form.password}
+            onChange={(e) => updateForm("password", e.target.value)}
+          />
+          <button
+            type="button"
+            onClick={() => setShowPassword(!showPassword)}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-white"
+          >
+            {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+          </button>
+        </div>
 
+        {/* Campos solo para Registro */}
         {mode === "signup" && (
           <>
             <Input
@@ -174,7 +196,7 @@ export default function Auth() {
               className="mb-3"
             />
             <Input
-              placeholder="Player ID (BloodStrike)"
+              placeholder="Player ID de BloodStrike"
               value={form.playerId}
               onChange={(e) => updateForm("playerId", e.target.value)}
               className="mb-3"
@@ -194,28 +216,34 @@ export default function Auth() {
               placeholder="País"
               value={form.country}
               onChange={(e) => updateForm("country", e.target.value)}
-              className="mb-3"
+              className="mb-4"
             />
 
-            {/* Dropdown de Clanes */}
-            <div className="mb-4">
-              <label className="text-sm text-zinc-400 mb-1 block">Clan</label>
+            {/* Selector de Clan */}
+            <div className="mb-6">
+              <label className="text-sm text-zinc-400 mb-1.5 block">Clan</label>
               <Select value={selectedClan} onValueChange={setSelectedClan}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Selecciona un clan" />
+                  <SelectValue placeholder="Selecciona un clan..." />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="sin_clan">Sin clan (puedo unirme después)</SelectItem>
-                  {existingClans.length > 0 && <div className="px-2 py-1 text-xs text-zinc-500">Clanes existentes:</div>}
-                  {existingClans.map((clanName) => (
-                    <SelectItem key={clanName} value={clanName}>
-                      {clanName}
-                    </SelectItem>
-                  ))}
+                  <SelectItem value="sin_clan">Sin clan por ahora</SelectItem>
+                  {existingClans.length > 0 && (
+                    <>
+                      <div className="px-2 py-1 text-xs text-zinc-500">Clanes existentes:</div>
+                      {existingClans.map((clan) => (
+                        <SelectItem key={clan} value={clan}>
+                          {clan}
+                        </SelectItem>
+                      ))}
+                    </>
+                  )}
                 </SelectContent>
               </Select>
-              <p className="text-xs text-zinc-500 mt-1">
-                Si eliges un clan, se enviará una solicitud al líder.
+              <p className="text-xs text-zinc-500 mt-1.5">
+                {selectedClan !== "sin_clan" 
+                  ? "Se enviará una solicitud al líder del clan" 
+                  : "Puedes unirte a un clan más tarde"}
               </p>
             </div>
           </>
@@ -224,22 +252,22 @@ export default function Auth() {
         <Button 
           onClick={mode === "login" ? handleLogin : handleSignup} 
           disabled={loading}
-          className="w-full mt-4"
+          className="w-full py-6 text-base font-semibold"
         >
           {loading 
             ? "Procesando..." 
             : mode === "login" 
               ? "Iniciar Sesión" 
-              : "Registrarse"}
+              : "Crear Cuenta"}
         </Button>
 
         <p className="text-center text-sm text-zinc-400 mt-6">
-          {mode === "login" ? "¿No tienes cuenta?" : "¿Ya tienes cuenta?"} 
+          {mode === "login" ? "¿No tienes cuenta?" : "¿Ya tienes una cuenta?"} 
           <button 
             onClick={() => setMode(mode === "login" ? "signup" : "login")} 
-            className="text-blue-400 hover:underline ml-1"
+            className="text-blue-400 hover:underline font-medium ml-1"
           >
-            {mode === "login" ? "Regístrate" : "Inicia sesión"}
+            {mode === "login" ? "Regístrate gratis" : "Inicia sesión"}
           </button>
         </p>
       </div>
