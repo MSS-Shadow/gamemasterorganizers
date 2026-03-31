@@ -101,7 +101,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
           <button
             onClick={() => setMobileOpen(!mobileOpen)}
-            className="p-2 text-white hover:bg-zinc-800 rounded-lg"
+            className="p-2 text-white"
           >
             {mobileOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
           </button>
@@ -115,7 +115,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
-            transition={{ duration: 0.25 }}
+            transition={{ duration: 0.3 }}
             className="fixed inset-0 z-40 bg-zinc-950 pt-16 lg:hidden overflow-y-auto"
           >
             <nav className="p-4 space-y-2">
