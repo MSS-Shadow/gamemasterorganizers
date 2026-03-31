@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -11,14 +11,6 @@ export default function ResetPassword() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-
-  // Limpiar cualquier lock pendiente al montar el componente
-  useEffect(() => {
-    return () => {
-      // Limpiar posibles locks de Supabase al desmontar
-      supabase.auth.stop();
-    };
-  }, []);
 
   const handleUpdatePassword = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -37,17 +29,19 @@ export default function ResetPassword() {
       const { error } = await supabase.auth.updateUser({ password });
 
       if (error) {
-        console.error("Error al actualizar contraseña:", error);
-        toast.error(error.message);
+        console.error("Error Supabase:", error);
+        toast.error(error.message || "No se pudo actualizar la contraseña");
       } else {
         toast.success("¡Contraseña actualizada correctamente!");
-        // Pequeña pausa antes de redirigir
+
+        // Pequeña pausa para que el usuario vea el mensaje de éxito
         setTimeout(() => {
-          navigate("/auth");
-        }, 1200);
+          navigate("/auth", { replace: true });
+        }, 1800);
       }
     } catch (err: any) {
-      toast.error("Error inesperado: " + err.message);
+      console.error("Error inesperado:", err);
+      toast.error("Error inesperado al actualizar la contraseña");
     } finally {
       setLoading(false);
     }
@@ -87,7 +81,11 @@ export default function ResetPassword() {
             required
           />
 
-          <Button type="submit" className="w-full py-6 text-base" disabled={loading}>
+          <Button 
+            type="submit" 
+            className="w-full py-6 text-base font-semibold" 
+            disabled={loading}
+          >
             {loading ? "Actualizando contraseña..." : "Cambiar contraseña"}
           </Button>
         </form>
