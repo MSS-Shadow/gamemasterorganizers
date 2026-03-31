@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { toast } from "sonner";
 
 interface Clan {
@@ -13,6 +13,7 @@ interface Clan {
   name: string;
   leader_user_id: string;
   leader_nickname: string;
+  description?: string;
   created_at: string;
 }
 
@@ -28,71 +29,53 @@ interface JoinRequest {
   id: string;
   nickname: string;
   player_id: string;
-  status: string;
   created_at: string;
 }
 
 export default function ClanPage() {
   const { clanName } = useParams<{ clanName: string }>();
   const { user } = useAuth();
+
   const [clan, setClan] = useState<Clan | null>(null);
   const [members, setMembers] = useState<Member[]>([]);
   const [joinRequests, setJoinRequests] = useState<JoinRequest[]>([]);
   const [loading, setLoading] = useState(true);
-  const [joining, setJoining] = useState(false);
-  const [clanStats, setClanStats] = useState({ tournaments: 0, wins: 0 });
-  const [recentResults, setRecentResults] = useState<any[]>([]);
 
   const isLeader = user?.id === clan?.leader_user_id;
-  const isMember = members.some((m) => m.user_id === user?.id);
 
   const fetchClan = async () => {
     if (!clanName) return;
     const decoded = decodeURIComponent(clanName);
 
-    // Cargar clan y miembros (tu lógica original)
-    const { data: clanData } = await supabase.from("clans").select("*").eq("name", decoded).single();
-    if (clanData) {
-      setClan(clanData as any);
+    // Cargar información del clan
+    const { data: clanData } = await supabase
+      .from("clans")
+      .select("*")
+      .eq("name", decoded)
+      .single();
 
+    if (clanData) {
+      setClan(clanData as Clan);
+
+      // Cargar miembros
       const { data: membersData } = await supabase
         .from("clan_members")
         .select("*")
-        .eq("clan_id", (clanData as any).id)
-        .order("joined_at");
+        .eq("clan_id", clanData.id)
+        .order("joined_at", { ascending: false });
 
-      setMembers((membersData as any[]) ?? []);
+      setMembers(membersData || []);
 
-      // Estadísticas
-      const { data: champions } = await supabase
-        .from("tournament_champions")
+      // Cargar solicitudes pendientes (del nuevo sistema)
+      const { data: requestsData } = await supabase
+        .from("clan_join_requests")
         .select("*")
-        .eq("team_name", decoded)
-        .order("date", { ascending: false });
+        .eq("clan_name", decoded)
+        .eq("status", "pending")
+        .order("created_at", { ascending: false });
 
-      const { data: results } = await supabase
-        .from("tournament_results")
-        .select("*")
-        .eq("team_name", decoded)
-        .order("created_at", { ascending: false })
-        .limit(10);
-
-      setClanStats({
-        tournaments: (results as any[])?.length ?? 0,
-        wins: (champions as any[])?.length ?? 0,
-      });
-      setRecentResults((results as any[]) ?? []);
+      setJoinRequests(requestsData || []);
     }
-
-    // NUEVO: Cargar solicitudes del nuevo sistema (registro)
-    const { data: requestsData } = await supabase
-      .from("clan_join_requests")
-      .select("*")
-      .eq("clan_name", decoded)
-      .eq("status", "pending")
-      .order("created_at", { ascending: false });
-
-    setJoinRequests((requestsData as any[]) ?? []);
 
     setLoading(false);
   };
@@ -101,39 +84,6 @@ export default function ClanPage() {
     fetchClan();
   }, [clanName]);
 
-  // Solicitar unirse (ahora usa el nuevo sistema)
-  const requestJoin = async () => {
-    if (!user || !clan) return;
-    setJoining(true);
-
-    const { data: profile } = await supabase.from("profiles").select("nickname, player_id").eq("user_id", user.id).single();
-
-    if (!profile) {
-      toast.error("Necesitas completar tu perfil primero");
-      setJoining(false);
-      return;
-    }
-
-    const { error } = await supabase.from("clan_join_requests").insert({
-      user_id: user.id,
-      nickname: profile.nickname,
-      player_id: profile.player_id,
-      clan_name: clan.name,
-    });
-
-    setJoining(false);
-
-    if (error) {
-      if (error.code === "23505") toast.error("Ya enviaste una solicitud");
-      else toast.error(error.message);
-      return;
-    }
-
-    toast.success("✅ Solicitud enviada al líder del clan");
-    fetchClan();
-  };
-
-  // Aceptar solicitud (nuevo sistema)
   const acceptRequest = async (requestId: string, nickname: string) => {
     const { error: updateError } = await supabase
       .from("clan_join_requests")
@@ -141,7 +91,7 @@ export default function ClanPage() {
       .eq("id", requestId);
 
     if (updateError) {
-      toast.error("Error al aceptar");
+      toast.error("Error al aceptar la solicitud");
       return;
     }
 
@@ -152,16 +102,15 @@ export default function ClanPage() {
       .eq("nickname", nickname);
 
     if (profileError) {
-      toast.error("Error al actualizar perfil");
+      toast.error("Error al actualizar el perfil del jugador");
       return;
     }
 
-    toast.success(`✅ ${nickname} ahora es miembro del clan`);
+    toast.success(`${nickname} ahora es miembro del clan`);
     fetchClan();
   };
 
-  // Rechazar solicitud
-  const rejectRequest = async (requestId: string) => {
+  const rejectRequest = async (requestId: string, nickname: string) => {
     const { error } = await supabase
       .from("clan_join_requests")
       .update({ status: "rejected" })
@@ -172,190 +121,173 @@ export default function ClanPage() {
       return;
     }
 
-    toast.success("❌ Solicitud rechazada");
+    toast.success(`Solicitud de ${nickname} rechazada`);
     fetchClan();
   };
 
-  const removeMember = async (memberId: string) => {
-    const { error } = await supabase.from("clan_members").delete().eq("id", memberId);
+  const removeMember = async (memberId: string, nickname: string) => {
+    if (!confirm(`¿Estás seguro de remover a ${nickname}?`)) return;
+
+    const { error } = await supabase
+      .from("clan_members")
+      .delete()
+      .eq("id", memberId);
+
     if (error) {
       toast.error(error.message);
       return;
     }
-    toast.success("Miembro removido");
+
+    toast.success(`${nickname} fue removido del clan`);
     fetchClan();
   };
 
-  if (loading) return <div className="text-center py-20 text-muted-foreground">Cargando clan...</div>;
+  if (loading) return <div className="text-center py-20 text-zinc-400">Cargando clan...</div>;
   if (!clan) return (
     <div className="text-center py-20">
-      <p className="text-muted-foreground mb-4">Clan no encontrado.</p>
-      <Link to="/teams" className="text-primary hover:underline">← Volver a Equipos</Link>
+      <p className="text-zinc-400 mb-4">Clan no encontrado.</p>
+      <Link to="/teams" className="text-yellow-400 hover:underline">← Volver a Equipos</Link>
     </div>
   );
 
   const approvedMembers = members.filter((m) => m.status === "member");
 
   return (
-    <div className="max-w-2xl mx-auto space-y-6">
-      <Link to="/teams" className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
+    <div className="max-w-4xl mx-auto space-y-10">
+      <Link to="/teams" className="inline-flex items-center gap-2 text-zinc-400 hover:text-white transition-colors">
         <ArrowLeft className="h-4 w-4" /> Volver a Equipos
       </Link>
 
-      {/* Header del clan */}
-      <div className="bg-card border border-border rounded-lg p-6">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-lg bg-primary/10">
-              <Users className="h-6 w-6 text-primary" />
+      {/* Header del Clan */}
+      <Card>
+        <CardHeader>
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="flex items-center gap-4">
+              <div className="p-4 bg-yellow-400/10 rounded-2xl">
+                <Users className="h-10 w-10 text-yellow-400" />
+              </div>
+              <div>
+                <CardTitle className="text-4xl">{clan.name}</CardTitle>
+                <p className="text-zinc-400">Líder: <span className="text-white">{clan.leader_nickname}</span></p>
+              </div>
             </div>
-            <div>
-              <h1 className="text-2xl font-bold text-foreground">{clan.name}</h1>
-              <p className="text-sm text-muted-foreground">Líder: {clan.leader_nickname}</p>
-            </div>
-          </div>
-          {!isMember && !isLeader && user && (
-            <Button onClick={requestJoin} disabled={joining} size="sm">
-              {joining ? "Enviando..." : "Solicitar Unirse"}
-            </Button>
-          )}
-        </div>
 
-        <div className="grid grid-cols-3 gap-4 text-sm">
-          <div className="bg-muted/50 rounded-lg p-3 text-center">
-            <p className="text-xl font-bold text-foreground">{approvedMembers.length + 1}</p>
-            <p className="text-muted-foreground">Miembros</p>
+            <div className="text-right">
+              <p className="text-sm text-zinc-500">Creado el</p>
+              <p className="font-medium">{new Date(clan.created_at).toLocaleDateString("es")}</p>
+            </div>
           </div>
-          <div className="bg-muted/50 rounded-lg p-3 text-center">
-            <p className="text-xl font-bold text-foreground">{clanStats.wins}</p>
-            <p className="text-muted-foreground">Victorias</p>
-          </div>
-          <div className="bg-muted/50 rounded-lg p-3 text-center">
-            <p className="text-xl font-bold text-foreground">{clanStats.tournaments}</p>
-            <p className="text-muted-foreground">Torneos</p>
-          </div>
-        </div>
+        </CardHeader>
+      </Card>
+
+      <div className="grid md:grid-cols-3 gap-6">
+        {/* Estadísticas */}
+        <Card className="md:col-span-1">
+          <CardContent className="pt-6">
+            <div className="text-center">
+              <p className="text-5xl font-bold text-white">{approvedMembers.length + 1}</p>
+              <p className="text-zinc-400 text-sm mt-1">Miembros totales</p>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Acciones rápidas para el líder */}
+        {isLeader && (
+          <Card className="md:col-span-2">
+            <CardHeader>
+              <CardTitle>Gestión de Clan</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Link to="/clan-leader-request" className="text-yellow-400 hover:underline">
+                Editar información del clan →
+              </Link>
+            </CardContent>
+          </Card>
+        )}
       </div>
 
-      <Tabs defaultValue="members" className="space-y-4">
-        <TabsList className="bg-card border border-border">
-          <TabsTrigger value="overview">General</TabsTrigger>
-          <TabsTrigger value="members">Miembros</TabsTrigger>
-          <TabsTrigger value="history">Historial</TabsTrigger>
-        </TabsList>
-
-        {/* Tab Miembros - con solicitudes mejoradas */}
-        <TabsContent value="members">
-          <div className="bg-card border border-border rounded-lg p-6 space-y-6">
-            <h3 className="font-semibold text-foreground">Miembros ({approvedMembers.length + 1})</h3>
-
-            {/* Lista de miembros */}
-            <div className="space-y-2">
-              <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
-                <span className="font-medium text-foreground flex items-center gap-2">
-                  {clan.leader_nickname} <Badge className="bg-primary/20 text-primary text-xs">Líder</Badge>
-                </span>
+      {/* Miembros y Solicitudes */}
+      <div className="grid lg:grid-cols-2 gap-8">
+        {/* Miembros */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Miembros ({approvedMembers.length + 1})</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {/* Líder */}
+            <div className="flex items-center justify-between bg-zinc-900 p-4 rounded-2xl">
+              <div className="flex items-center gap-3">
+                <ShieldCheck className="h-5 w-5 text-yellow-400" />
+                <span className="font-medium">{clan.leader_nickname}</span>
               </div>
-              {approvedMembers.map((m) => (
-                <div key={m.id} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
-                  <Link to={`/player/${m.nickname}`} className="font-medium text-foreground hover:text-primary">
-                    {m.nickname}
-                  </Link>
-                  {isLeader && (
-                    <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => removeMember(m.id)}>
-                      <UserMinus className="h-4 w-4 text-destructive" />
-                    </Button>
-                  )}
-                </div>
-              ))}
+              <Badge className="bg-yellow-400/20 text-yellow-400">Líder</Badge>
             </div>
 
-            {/* NUEVA SECCIÓN: Solicitudes pendientes del registro */}
-            {isLeader && joinRequests.length > 0 && (
-              <div className="pt-4 border-t">
-                <div className="flex items-center justify-between mb-3">
-                  <h3 className="font-semibold text-foreground">Solicitudes pendientes ({joinRequests.length})</h3>
-                  <Button variant="ghost" size="sm" onClick={fetchClan}>
-                    <RefreshCw className="h-4 w-4 mr-1" /> Actualizar
+            {/* Miembros normales */}
+            {approvedMembers.map((m) => (
+              <div key={m.id} className="flex items-center justify-between bg-zinc-900 p-4 rounded-2xl">
+                <Link to={`/player/${m.nickname}`} className="font-medium hover:text-yellow-400 transition-colors">
+                  {m.nickname}
+                </Link>
+                {isLeader && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => removeMember(m.id, m.nickname)}
+                    className="text-red-400 hover:text-red-500"
+                  >
+                    <UserMinus className="h-4 w-4" />
                   </Button>
-                </div>
+                )}
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+
+        {/* Solicitudes Pendientes */}
+        {isLeader && (
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between">
+              <CardTitle>Solicitudes Pendientes ({joinRequests.length})</CardTitle>
+              <Button variant="ghost" size="sm" onClick={fetchClan}>
+                <RefreshCw className="h-4 w-4" />
+              </Button>
+            </CardHeader>
+            <CardContent>
+              {joinRequests.length > 0 ? (
                 <div className="space-y-3">
                   {joinRequests.map((req) => (
-                    <div key={req.id} className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
+                    <div key={req.id} className="bg-zinc-900 p-4 rounded-2xl flex items-center justify-between">
                       <div>
                         <p className="font-medium">{req.nickname}</p>
-                        <p className="text-xs text-muted-foreground">ID: {req.player_id}</p>
+                        <p className="text-xs text-zinc-500">ID: {req.player_id}</p>
                       </div>
                       <div className="flex gap-2">
                         <Button
-                          variant="default"
                           size="sm"
-                          className="bg-green-500 hover:bg-green-600"
+                          className="bg-green-600 hover:bg-green-700"
                           onClick={() => acceptRequest(req.id, req.nickname)}
                         >
-                          <CheckCircle className="h-4 w-4 mr-1" /> Aceptar
+                          Aceptar
                         </Button>
                         <Button
-                          variant="destructive"
                           size="sm"
-                          onClick={() => rejectRequest(req.id)}
+                          variant="destructive"
+                          onClick={() => rejectRequest(req.id, req.nickname)}
                         >
-                          <XCircle className="h-4 w-4 mr-1" /> Rechazar
+                          Rechazar
                         </Button>
                       </div>
                     </div>
                   ))}
                 </div>
-              </div>
-            )}
-          </div>
-        </TabsContent>
-
-        <TabsContent value="overview">
-          {/* tu contenido original de overview */}
-          <div className="bg-card border border-border rounded-lg p-6 space-y-4">
-            <p className="text-sm text-muted-foreground">
-              Clan creado el {new Date(clan.created_at).toLocaleDateString("es")}.
-            </p>
-            <div className="space-y-2">
-              <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
-                <span className="font-medium text-foreground flex items-center gap-2">
-                  {clan.leader_nickname} <Badge className="bg-primary/20 text-primary text-xs">Líder</Badge>
-                </span>
-              </div>
-              {approvedMembers.slice(0, 5).map((m) => (
-                <div key={m.id} className="flex items-center p-3 bg-muted/50 rounded-lg">
-                  <Link to={`/player/${m.nickname}`} className="font-medium text-foreground hover:text-primary">
-                    {m.nickname}
-                  </Link>
-                </div>
-              ))}
-            </div>
-          </div>
-        </TabsContent>
-
-        <TabsContent value="history">
-          {/* tu contenido original de historial */}
-          <div className="bg-card border border-border rounded-lg p-6">
-            <h3 className="font-semibold text-foreground mb-3">Historial de Torneos</h3>
-            {recentResults.length > 0 ? (
-              <div className="space-y-2">
-                {recentResults.map((r: any) => (
-                  <div key={r.id} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg text-sm">
-                    <div>
-                      <p className="font-medium text-foreground">{r.team_name}</p>
-                      <p className="text-xs text-muted-foreground">Posición #{r.position} · {r.kills} kills</p>
-                    </div>
-                    <span className="font-semibold text-foreground">{Number(r.total_points).toFixed(1)} pts</span>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p className="text-muted-foreground text-sm">No hay resultados de torneos aún.</p>
-            )}
-          </div>
-        </TabsContent>
-      </Tabs>
+              ) : (
+                <p className="text-center text-zinc-500 py-8">No hay solicitudes pendientes.</p>
+              )}
+            </CardContent>
+          </Card>
+        )}
+      </div>
     </div>
   );
 }
