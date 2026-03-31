@@ -3,10 +3,9 @@ import { Link, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Home, Trophy, BarChart3, Users, User, Swords, CalendarDays,
-  Medal, Star, TrendingUp, Megaphone, Shield, LogIn, Menu, X
+  Medal, Star, Megaphone, Shield, LogIn, Menu, X
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
-import { Button } from "@/components/ui/button";
 
 const navItems = [
   { label: "Inicio", path: "/", icon: Home },
@@ -35,7 +34,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="flex min-h-screen bg-zinc-950">
-      {/* Desktop Sidebar - Más moderno */}
+      {/* Desktop Sidebar */}
       <aside className="hidden lg:flex flex-col w-64 border-r border-zinc-800 bg-zinc-900 fixed h-screen z-30">
         {/* Logo */}
         <div className="flex items-center gap-3 px-6 py-6 border-b border-zinc-800">
@@ -66,7 +65,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           ))}
         </nav>
 
-        {/* Footer del sidebar */}
+        {/* Footer */}
         <div className="p-4 border-t border-zinc-800">
           {user ? (
             <Link
@@ -109,14 +108,12 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                 <User className="h-6 w-6" />
               </Link>
             )}
-            <Button
-              variant="ghost"
-              size="icon"
+            <button
               onClick={() => setMobileOpen(!mobileOpen)}
-              className="text-white"
+              className="p-2 text-white hover:bg-zinc-800 rounded-lg transition-colors"
             >
               {mobileOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-            </Button>
+            </button>
           </div>
         </div>
       </header>
@@ -128,6 +125,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.25 }}
             className="fixed inset-0 z-40 bg-zinc-950 pt-16 lg:hidden overflow-y-auto"
           >
             <nav className="p-4 space-y-2">
@@ -149,4 +147,14 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             </nav>
           </motion.div>
         )}
-      </AnimatePresence
+      </AnimatePresence>
+
+      {/* Main Content */}
+      <main className="flex-1 lg:ml-64 pt-16 lg:pt-0 min-h-screen">
+        <div className="p-4 md:p-6 lg:p-8 max-w-7xl mx-auto">
+          {children}
+        </div>
+      </main>
+    </div>
+  );
+}
