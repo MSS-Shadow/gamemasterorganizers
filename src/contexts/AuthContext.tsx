@@ -47,11 +47,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         .single();
 
       if (error) {
-        console.warn("⚠️ No se pudo cargar el perfil:", error.message);
+        console.warn("No se pudo cargar el perfil:", error.message);
         setProfile(null);
       } else {
         setProfile(data);
-        console.log("✅ Perfil cargado:", data?.nickname);
       }
     } catch (err) {
       console.warn("Error en fetchProfile:", err);
@@ -59,22 +58,39 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  // Roles simplificados (sin tabla user_roles)
   const fetchRoles = async (currentUser: User | null) => {
+    if (!currentUser) {
+      setRoles([]);
+      return;
+    }
+
     try {
-      if (!currentUser?.email) {
-        setRoles([]);
-        return;
+      // Buscar roles en la tabla user_roles
+      const { data: roleData } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", currentUser.id);
+
+      const userRoles = roleData?.map(r => r.role) || [];
+
+      // Fallback: si el email es el tuyo, forzamos rol admin (por seguridad)
+      if (currentUser.email === "portadormato@gmail.com") {
+        if (!userRoles.includes("admin")) {
+          userRoles.push("admin");
+        }
       }
 
-      // ←←← CAMBIA ESTO POR TU EMAIL REAL DE ADMINISTRADOR
-      const isAdminUser = currentUser.email === "TU_EMAIL_ADMIN@EJEMPLO.COM";
-
-      setRoles(isAdminUser ? ["admin"] : []);
-      console.log(`👤 Roles asignados: ${isAdminUser ? "ADMIN" : "Usuario normal"}`);
+      setRoles(userRoles);
+      console.log(`👤 Roles del usuario ${currentUser.email}:`, userRoles);
     } catch (err) {
-      console.warn("Error en fetchRoles:", err);
-      setRoles([]);
+      console.warn("Error al cargar roles:", err);
+      
+      // Fallback seguro: si es tu email, dar rol admin aunque falle la consulta
+      if (currentUser.email === "portadormato@gmail.com") {
+        setRoles(["admin"]);
+      } else {
+        setRoles([]);
+      }
     }
   };
 
@@ -85,15 +101,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
       setSession(session);
       setUser(session?.user ?? null);
 
       if (session?.user) {
-        setTimeout(() => {
-          fetchProfile(session.user.id);
-          fetchRoles(session.user);
-        }, 100);
+        await Promise.all([
+          fetchProfile(session.user.id),
+          fetchRoles(session.user)
+        ]);
       } else {
         setProfile(null);
         setRoles([]);
@@ -101,12 +117,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setLoading(false);
     });
 
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    // Cargar sesión inicial
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {
-        fetchProfile(session.user.id);
-        fetchRoles(session.user);
+        await Promise.all([
+          fetchProfile(session.user.id),
+          fetchRoles(session.user)
+        ]);
       }
       setLoading(false);
     });
