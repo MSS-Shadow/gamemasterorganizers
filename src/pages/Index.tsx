@@ -1,68 +1,42 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
+import { Trophy, Megaphone, Zap, MessageCircle, ChevronRight } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function HomePage() {
-  const [stats, setStats] = useState({
-    players: 0,
-    teams: 0,
-    tournaments: 0,
-    scrims: 0
-  });
-  const [errorLog, setErrorLog] = useState<string[]>([]);
+  const { user, isAdmin } = useAuth();
+  const [stats, setStats] = useState({ players: 0, teams: 0, tournaments: 0, scrims: 0 });
+  const [announcements, setAnnouncements] = useState<any[]>([]);
 
   useEffect(() => {
     const loadData = async () => {
-      const newErrors: string[] = [];
-
       try {
-        console.log("🔍 Iniciando diagnóstico de Supabase...");
+        console.log("🔄 Cargando datos seguros...");
 
-        // 1. Profiles
-        const profileRes = await supabase
-          .from("profiles")
-          .select("*", { count: "exact", head: true });
-
-        console.log("Profiles response:", profileRes);
-
-        if (profileRes.error) newErrors.push(`Profiles error: ${profileRes.error.message}`);
-
-        // 2. Clans
-        const clanRes = await supabase
-          .from("clans")
-          .select("*", { count: "exact", head: true });
-
-        console.log("Clans response:", clanRes);
-
-        if (clanRes.error) newErrors.push(`Clans error: ${clanRes.error.message}`);
-
-        // 3. Announcements (para ver si al menos una tabla funciona)
-        const annRes = await supabase
-          .from("announcements")
-          .select("*")
-          .limit(3);
-
-        console.log("Announcements response:", annRes);
+        const [profileRes, clanRes, annRes] = await Promise.all([
+          supabase.from("profiles").select("*", { count: "exact", head: true }).catch(() => ({ count: 0 })),
+          supabase.from("clans").select("*", { count: "exact", head: true }).catch(() => ({ count: 0 })),
+          supabase.from("announcements").select("*").limit(5).catch(() => ({ data: [] })),
+        ]);
 
         setStats({
-          players: profileRes.count ?? 0,
-          teams: clanRes.count ?? 0,
+          players: (profileRes as any).count ?? 0,
+          teams: (clanRes as any).count ?? 0,
           tournaments: 0,
           scrims: 0,
         });
 
-        setErrorLog(newErrors);
+        setAnnouncements((annRes.data ?? []));
 
-        console.log("📊 Estadísticas finales:", {
-          players: profileRes.count,
-          teams: clanRes.count,
-          announcements: annRes.data?.length || 0
+        console.log("✅ Datos cargados:", {
+          players: (profileRes as any).count,
+          teams: (clanRes as any).count,
+          announcements: (annRes.data ?? []).length
         });
 
-      } catch (err: any) {
-        console.error("Error general:", err);
-        newErrors.push(`General error: ${err.message}`);
-        setErrorLog(newErrors);
+      } catch (err) {
+        console.error("Error cargando datos:", err);
       }
     };
 
@@ -70,37 +44,47 @@ export default function HomePage() {
   }, []);
 
   return (
-    <div className="p-8 max-w-4xl mx-auto space-y-12">
-      <div className="text-center">
-        <h1 className="text-5xl font-bold text-white mb-4">Game Master Organizers</h1>
-        <p className="text-zinc-400">Diagnóstico de conexión con Supabase</p>
+    <div className="p-6 max-w-7xl mx-auto space-y-12">
+      <div className="text-center py-16 bg-zinc-900 rounded-3xl border border-zinc-800">
+        <Trophy className="h-20 w-20 text-yellow-400 mx-auto mb-6" />
+        <h1 className="text-6xl font-bold text-white mb-4">Game Master Organizers</h1>
+        <p className="text-xl text-zinc-400">Torneos y comunidad de BloodStrike LATAM</p>
+        {user && <p className="mt-4 text-green-400">✅ Logueado como: {user.email}</p>}
+        {isAdmin && <p className="text-yellow-400">👑 Eres Administrador</p>}
       </div>
 
-      <div className="grid grid-cols-2 gap-6">
-        <div className="bg-zinc-900 border border-zinc-700 rounded-2xl p-8 text-center">
-          <p className="text-6xl font-bold text-yellow-400">{stats.players}</p>
-          <p className="text-zinc-400 mt-3">Jugadores Registrados</p>
-        </div>
-        <div className="bg-zinc-900 border border-zinc-700 rounded-2xl p-8 text-center">
-          <p className="text-6xl font-bold text-yellow-400">{stats.teams}</p>
-          <p className="text-zinc-400 mt-3">Clanes Activos</p>
-        </div>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+        {[
+          { label: "Jugadores Registrados", value: stats.players },
+          { label: "Clanes Activos", value: stats.teams },
+          { label: "Torneos", value: stats.tournaments },
+          { label: "Scrims", value: stats.scrims },
+        ].map((stat, i) => (
+          <div key={i} className="bg-zinc-900 border border-zinc-800 rounded-2xl p-8 text-center">
+            <p className="text-6xl font-bold text-yellow-400">{stat.value}</p>
+            <p className="text-zinc-400 mt-3">{stat.label}</p>
+          </div>
+        ))}
       </div>
 
-      {errorLog.length > 0 && (
-        <div className="bg-red-950 border border-red-800 rounded-2xl p-6">
-          <h3 className="text-red-400 font-semibold mb-3">Errores detectados:</h3>
-          <ul className="text-red-300 text-sm space-y-1">
-            {errorLog.map((err, i) => (
-              <li key={i}>• {err}</li>
-            ))}
-          </ul>
-        </div>
-      )}
-
-      <div className="text-center text-zinc-500 text-sm">
-        Revisa la consola del navegador (F12) para más detalles.
-      </div>
+      <section>
+        <h2 className="text-3xl font-bold text-white mb-6 flex items-center gap-3">
+          <Megaphone className="h-8 w-8 text-yellow-400" /> Últimas Noticias
+        </h2>
+        {announcements.length > 0 ? (
+          announcements.map((a: any) => (
+            <div key={a.id} className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 mb-4">
+              <p className="text-sm text-zinc-500">{new Date(a.created_at).toLocaleDateString("es")}</p>
+              <h3 className="font-semibold text-white">{a.title}</h3>
+              <p className="text-zinc-400 mt-2">{a.description}</p>
+            </div>
+          ))
+        ) : (
+          <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-12 text-center">
+            <p className="text-zinc-500">No hay anuncios por el momento.</p>
+          </div>
+        )}
+      </section>
     </div>
   );
 }
