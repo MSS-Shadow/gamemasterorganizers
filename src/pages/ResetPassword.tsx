@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
+import { Lock, ArrowLeft } from "lucide-react";
 
 export default function ResetPassword() {
   const [password, setPassword] = useState("");
@@ -14,8 +15,13 @@ export default function ResetPassword() {
   const handleUpdatePassword = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (password !== confirmPassword) return toast.error("Las contraseñas no coinciden");
-    if (password.length < 6) return toast.error("La contraseña debe tener al menos 6 caracteres");
+    if (password !== confirmPassword) {
+      return toast.error("Las contraseñas no coinciden");
+    }
+
+    if (password.length < 6) {
+      return toast.error("La contraseña debe tener al menos 6 caracteres");
+    }
 
     setLoading(true);
 
@@ -26,15 +32,30 @@ export default function ResetPassword() {
     if (error) {
       toast.error(error.message);
     } else {
-      toast.success("¡Contraseña actualizada correctamente! Ya puedes iniciar sesión.");
-      navigate("/auth");
+      toast.success("¡Contraseña actualizada correctamente!");
+      setTimeout(() => {
+        navigate("/auth");
+      }, 1500);
     }
   };
 
   return (
     <div className="min-h-screen bg-zinc-950 flex items-center justify-center p-4">
-      <div className="max-w-md w-full bg-zinc-900 rounded-2xl p-8">
-        <h1 className="text-3xl font-bold text-center mb-8">Nueva contraseña</h1>
+      <div className="max-w-md w-full bg-zinc-900 rounded-3xl p-8">
+        <Link to="/auth" className="flex items-center gap-2 text-zinc-400 hover:text-white mb-6">
+          <ArrowLeft className="h-5 w-5" /> Volver al login
+        </Link>
+
+        <div className="flex justify-center mb-6">
+          <div className="p-4 bg-yellow-400/10 rounded-2xl">
+            <Lock className="h-10 w-10 text-yellow-400" />
+          </div>
+        </div>
+
+        <h1 className="text-3xl font-bold text-center mb-2">Nueva contraseña</h1>
+        <p className="text-center text-zinc-400 mb-8">
+          Ingresa tu nueva contraseña
+        </p>
 
         <form onSubmit={handleUpdatePassword} className="space-y-4">
           <Input
@@ -52,10 +73,14 @@ export default function ResetPassword() {
             required
           />
 
-          <Button type="submit" className="w-full" disabled={loading}>
-            {loading ? "Actualizando..." : "Cambiar contraseña"}
+          <Button type="submit" className="w-full py-6 text-base" disabled={loading}>
+            {loading ? "Actualizando contraseña..." : "Cambiar contraseña"}
           </Button>
         </form>
+
+        <p className="text-center text-xs text-zinc-500 mt-6">
+          El enlace de recuperación es válido por un tiempo limitado.
+        </p>
       </div>
     </div>
   );
