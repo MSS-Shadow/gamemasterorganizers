@@ -2,25 +2,21 @@
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from './types';
 
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
-const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+// Fallback seguro para Lovable + GitHub sync
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || 
+                     "https://ljbhopkstvdqujhhuprb.supabase.co";
 
-// Seguridad: si faltan las variables, mostramos error claro pero no rompemos toda la app
-if (!SUPABASE_URL) {
-  console.error("❌ VITE_SUPABASE_URL no está definida en las variables de entorno");
-}
-if (!SUPABASE_PUBLISHABLE_KEY) {
-  console.error("❌ VITE_SUPABASE_PUBLISHABLE_KEY no está definida en las variables de entorno");
+const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || 
+                                 "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxqYmhvcGtzdHZkcXVqaGh1cHJiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM3MDY2MzEsImV4cCI6MjA4OTI4MjYzMX0.oXU9p0Cskw6soTqP63Ca44TjwmvCIdAKgYRbTyZJViA";
+
+if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
+  console.error("❌ Supabase keys are missing. Check environment variables in Lovable.");
 }
 
-export const supabase = createClient<Database>(
-  SUPABASE_URL || "https://placeholder.supabase.co",
-  SUPABASE_PUBLISHABLE_KEY || "placeholder-key",
-  {
-    auth: {
-      storage: localStorage,
-      persistSession: true,
-      autoRefreshToken: true,
-    }
+export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
+  auth: {
+    storage: localStorage,
+    persistSession: true,
+    autoRefreshToken: true,
   }
-);
+});
