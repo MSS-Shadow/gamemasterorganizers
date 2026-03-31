@@ -3,10 +3,10 @@ import { Link, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Home, Trophy, BarChart3, Users, User, Swords, CalendarDays,
-  Medal, Star, TrendingUp, BookOpen, ScrollText, MessageCircle,
-  Menu, X, ChevronRight, Shield, LogIn, Megaphone
+  Medal, Star, TrendingUp, Megaphone, Shield, LogIn, Menu, X
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { Button } from "@/components/ui/button";
 
 const navItems = [
   { label: "Inicio", path: "/", icon: Home },
@@ -17,13 +17,8 @@ const navItems = [
   { label: "Scrims", path: "/scrims", icon: Swords },
   { label: "Próximos", path: "/upcoming", icon: CalendarDays },
   { label: "Resultados", path: "/results", icon: Medal },
-  { label: "Historial", path: "/tournament-history", icon: Trophy },
   { label: "Salón de la Fama", path: "/hall-of-fame", icon: Star },
   { label: "Anuncios", path: "/announcements", icon: Megaphone },
-  { label: "Creadores", path: "/creators", icon: TrendingUp },
-  { label: "Actividad", path: "/activity", icon: BarChart3 },
-  { label: "Reportar", path: "/report", icon: ScrollText },
-  { label: "Reglas", path: "/rules", icon: ScrollText },
 ];
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
@@ -36,99 +31,122 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     ...(isAdmin ? [{ label: "Admin", path: "/admin", icon: Shield }] : []),
   ];
 
+  const isActive = (path: string) => location.pathname === path;
+
   return (
-    <div className="flex min-h-screen">
-      {/* Desktop Sidebar */}
-      <aside className="hidden lg:flex flex-col w-60 border-r border-border bg-background fixed h-screen z-30">
-        <Link to="/" className="flex items-center gap-2 px-6 py-5 border-b border-border">
-          <Trophy className="h-6 w-6 text-primary" />
-          <span className="font-rubik font-bold text-lg text-foreground tracking-tight">Game Master</span>
-        </Link>
-        <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-1">
-          {allNav.map((item) => {
-            const active = location.pathname === item.path;
-            return (
-              <Link key={item.path} to={item.path}
-                className={`flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-colors duration-200 ${
-                  active ? "bg-primary/10 text-primary" : "text-muted-foreground hover:text-foreground hover:bg-muted"
-                }`}>
-                <item.icon className="h-4 w-4 shrink-0" />
-                {item.label}
-              </Link>
-            );
-          })}
+    <div className="flex min-h-screen bg-zinc-950">
+      {/* Desktop Sidebar - Más moderno */}
+      <aside className="hidden lg:flex flex-col w-64 border-r border-zinc-800 bg-zinc-900 fixed h-screen z-30">
+        {/* Logo */}
+        <div className="flex items-center gap-3 px-6 py-6 border-b border-zinc-800">
+          <div className="p-2 bg-yellow-400 rounded-xl">
+            <Trophy className="h-7 w-7 text-zinc-950" />
+          </div>
+          <div>
+            <span className="font-bold text-2xl tracking-tighter text-white">Game Master</span>
+            <p className="text-[10px] text-zinc-500 -mt-1">BLOODSTRIKE</p>
+          </div>
+        </div>
+
+        {/* Navegación */}
+        <nav className="flex-1 overflow-y-auto py-6 px-3 space-y-1">
+          {allNav.map((item) => (
+            <Link
+              key={item.path}
+              to={item.path}
+              className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 ${
+                isActive(item.path)
+                  ? "bg-yellow-400 text-zinc-950 shadow-md"
+                  : "text-zinc-400 hover:text-white hover:bg-zinc-800"
+              }`}
+            >
+              <item.icon className="h-5 w-5" />
+              {item.label}
+            </Link>
+          ))}
         </nav>
-        <div className="p-4 border-t border-border space-y-2">
+
+        {/* Footer del sidebar */}
+        <div className="p-4 border-t border-zinc-800">
           {user ? (
-            <Link to="/profile" className="flex items-center gap-2 px-3 py-2.5 rounded-md bg-card text-foreground text-sm font-medium hover:bg-muted transition-colors">
-              <User className="h-4 w-4 text-primary" />
-              {profile?.nickname || "Mi Perfil"}
+            <Link
+              to="/profile"
+              className="flex items-center gap-3 px-4 py-3 rounded-xl bg-zinc-800 hover:bg-zinc-700 transition-colors"
+            >
+              <div className="w-8 h-8 bg-zinc-700 rounded-full flex items-center justify-center">
+                <User className="h-4 w-4" />
+              </div>
+              <div className="text-sm">
+                <p className="font-medium text-white">{profile?.nickname || "Jugador"}</p>
+                <p className="text-xs text-zinc-500">Ver perfil</p>
+              </div>
             </Link>
           ) : (
-            <Link to="/auth" className="flex items-center gap-2 px-3 py-2.5 rounded-md bg-primary/10 text-primary text-sm font-medium hover:bg-primary/20 transition-colors">
+            <Link
+              to="/auth"
+              className="flex items-center justify-center gap-2 bg-yellow-400 hover:bg-yellow-300 transition-colors text-zinc-950 font-semibold py-3 rounded-xl"
+            >
               <LogIn className="h-4 w-4" />
               Iniciar Sesión
             </Link>
           )}
-          <a href="https://discord.gg" target="_blank" rel="noopener noreferrer"
-            className="flex items-center gap-2 px-3 py-2.5 rounded-md bg-accent/20 text-accent text-sm font-medium hover:bg-accent/30 transition-colors">
-            <MessageCircle className="h-4 w-4" />
-            Únete al Discord
-          </a>
         </div>
       </aside>
 
       {/* Mobile Header */}
-      <div className="lg:hidden fixed top-0 left-0 right-0 z-40 bg-background border-b border-border">
-        <div className="flex items-center justify-between px-4 py-3">
+      <header className="lg:hidden fixed top-0 left-0 right-0 z-50 bg-zinc-900 border-b border-zinc-800">
+        <div className="flex items-center justify-between px-4 h-16">
           <Link to="/" className="flex items-center gap-2">
-            <Trophy className="h-5 w-5 text-primary" />
-            <span className="font-rubik font-bold text-foreground">Game Master</span>
+            <div className="p-1.5 bg-yellow-400 rounded-lg">
+              <Trophy className="h-6 w-6 text-zinc-950" />
+            </div>
+            <span className="font-bold text-xl tracking-tight text-white">Game Master</span>
           </Link>
-          <div className="flex items-center gap-2">
-            {user ? (
-              <Link to="/profile" className="p-2 text-primary"><User className="h-5 w-5" /></Link>
-            ) : (
-              <Link to="/auth" className="p-2 text-primary"><LogIn className="h-5 w-5" /></Link>
+
+          <div className="flex items-center gap-3">
+            {user && (
+              <Link to="/profile" className="text-white">
+                <User className="h-6 w-6" />
+              </Link>
             )}
-            <button onClick={() => setMobileOpen(!mobileOpen)} className="p-2 text-muted-foreground hover:text-foreground">
-              {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-            </button>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setMobileOpen(!mobileOpen)}
+              className="text-white"
+            >
+              {mobileOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+            </Button>
           </div>
         </div>
-      </div>
+      </header>
 
-      {/* Mobile Nav Overlay */}
+      {/* Mobile Menu */}
       <AnimatePresence>
         {mobileOpen && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="fixed inset-0 z-30 bg-background/95 backdrop-blur lg:hidden pt-16">
-            <nav className="p-4 space-y-1">
-              {allNav.map((item) => {
-                const active = location.pathname === item.path;
-                return (
-                  <Link key={item.path} to={item.path} onClick={() => setMobileOpen(false)}
-                    className={`flex items-center justify-between px-4 py-3 rounded-md text-sm font-medium ${
-                      active ? "bg-primary/10 text-primary" : "text-muted-foreground hover:text-foreground"
-                    }`}>
-                    <span className="flex items-center gap-3"><item.icon className="h-4 w-4" />{item.label}</span>
-                    <ChevronRight className="h-4 w-4 opacity-30" />
-                  </Link>
-                );
-              })}
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="fixed inset-0 z-40 bg-zinc-950 pt-16 lg:hidden overflow-y-auto"
+          >
+            <nav className="p-4 space-y-2">
+              {allNav.map((item) => (
+                <Link
+                  key={item.path}
+                  to={item.path}
+                  onClick={() => setMobileOpen(false)}
+                  className={`flex items-center gap-4 px-5 py-4 rounded-2xl text-lg font-medium transition-all ${
+                    isActive(item.path)
+                      ? "bg-yellow-400 text-zinc-950"
+                      : "text-zinc-300 hover:bg-zinc-800"
+                  }`}
+                >
+                  <item.icon className="h-5 w-5" />
+                  {item.label}
+                </Link>
+              ))}
             </nav>
           </motion.div>
         )}
-      </AnimatePresence>
-
-      <main className="flex-1 lg:ml-60 pt-14 lg:pt-0">
-        <AnimatePresence mode="wait">
-          <motion.div key={location.pathname} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }} className="p-4 md:p-6 lg:p-8 max-w-[1280px] mx-auto">
-            {children}
-          </motion.div>
-        </AnimatePresence>
-      </main>
-    </div>
-  );
-}
+      </AnimatePresence
