@@ -17,8 +17,8 @@ export default function AdminPlayers() {
 
         if (error) throw error;
         setPlayers(data || []);
-      } catch (error: any) {
-        console.error("Error cargando jugadores:", error);
+      } catch (err: any) {
+        console.error(err);
         toast.error("Error al cargar jugadores");
       } finally {
         setLoading(false);
@@ -28,31 +28,39 @@ export default function AdminPlayers() {
     fetchPlayers();
   }, []);
 
-  if (loading) return <div className="p-8 text-center text-zinc-400">Cargando jugadores...</div>;
+  if (loading) return <div className="p-12 text-center">Cargando jugadores...</div>;
 
   return (
     <div className="space-y-6">
-      <h2 className="text-2xl font-bold">Jugadores Registrados</h2>
+      <h2 className="text-2xl font-bold">Jugadores Registrados ({players.length})</h2>
       <Table>
         <TableHeader>
           <TableRow>
             <TableHead>Nickname</TableHead>
+            <TableHead>Email</TableHead>
             <TableHead>Player ID</TableHead>
             <TableHead>Plataforma</TableHead>
             <TableHead>País</TableHead>
-            <TableHead>Registrado</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
-          {players.map((player) => (
-            <TableRow key={player.id}>
-              <TableCell className="font-medium">{player.nickname}</TableCell>
-              <TableCell>{player.player_id}</TableCell>
-              <TableCell>{player.platform}</TableCell>
-              <TableCell>{player.country}</TableCell>
-              <TableCell>{new Date(player.created_at).toLocaleDateString()}</TableCell>
+          {players.length === 0 ? (
+            <TableRow>
+              <TableCell colSpan={5} className="text-center py-12 text-zinc-400">
+                No hay jugadores registrados
+              </TableCell>
             </TableRow>
-          ))}
+          ) : (
+            players.map((p) => (
+              <TableRow key={p.id}>
+                <TableCell>{p.nickname || "—"}</TableCell>
+                <TableCell>{p.email}</TableCell>
+                <TableCell>{p.player_id || "—"}</TableCell>
+                <TableCell>{p.platform}</TableCell>
+                <TableCell>{p.country}</TableCell>
+              </TableRow>
+            ))
+          )}
         </TableBody>
       </Table>
     </div>
