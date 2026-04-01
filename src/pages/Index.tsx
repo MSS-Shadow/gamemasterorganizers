@@ -15,9 +15,9 @@ export default function HomePage() {
         console.log("🔄 Cargando datos seguros...");
 
         const [profileRes, clanRes, annRes] = await Promise.all([
-          supabase.from("profiles").select("*", { count: "exact", head: true }).catch(() => ({ count: 0 })),
-          supabase.from("clans").select("*", { count: "exact", head: true }).catch(() => ({ count: 0 })),
-          supabase.from("announcements").select("*").limit(5).catch(() => ({ data: [] })),
+          supabase.from("profiles").select("*", { count: "exact", head: true }),
+          supabase.from("clans").select("*", { count: "exact", head: true }),
+          supabase.from("announcements").select("*").limit(5),
         ]);
 
         setStats({

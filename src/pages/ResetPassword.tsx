@@ -13,12 +13,6 @@ export default function ResetPassword() {
   const navigate = useNavigate();
 
   // Limpiar cualquier lock pendiente al montar y desmontar
-  useEffect(() => {
-    return () => {
-      // Forzar liberación de locks de Supabase
-      supabase.auth.stop();
-    };
-  }, []);
 
   const handleUpdatePassword = async (e: React.FormEvent) => {
     e.preventDefault();

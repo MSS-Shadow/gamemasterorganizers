@@ -39,7 +39,7 @@ export default function ProfilePage() {
       setForm({
         nickname: profile.nickname || "",
         player_id: profile.player_id || "",
-        platform: profile.platform || "Mobile",
+        platform: (profile.platform as "PC" | "Mobile") || "Mobile",
         country: profile.country || "",
       });
     }
