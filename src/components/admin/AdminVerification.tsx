@@ -8,8 +8,11 @@ export default function AdminVerification() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let isMounted = true;
+
     const fetchUsers = async () => {
       try {
+        setLoading(true);
         const { data, error } = await supabase
           .from("profiles")
           .select("id, nickname, email, player_id, platform, country, created_at")
@@ -17,22 +20,25 @@ export default function AdminVerification() {
           .limit(50);
 
         if (error) {
-          console.error("Error en profiles:", error);
-          toast.error("Error al cargar usuarios");
-          setUsers([]);
+          console.warn("Error en profiles:", error.message);
+          if (isMounted) setUsers([]);
           return;
         }
 
-        setUsers(data || []);
+        if (isMounted) setUsers(data || []);
       } catch (err) {
-        console.error(err);
-        toast.error("Error inesperado");
+        console.warn("Error inesperado:", err);
+        if (isMounted) setUsers([]);
       } finally {
-        setLoading(false);
+        if (isMounted) setLoading(false);
       }
     };
 
     fetchUsers();
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   if (loading) {
@@ -42,7 +48,7 @@ export default function AdminVerification() {
   return (
     <div className="space-y-6">
       <h2 className="text-2xl font-bold">Verificación de Cuentas</h2>
-      <p className="text-zinc-400 mb-4">Usuarios registrados ({users.length})</p>
+      <p className="text-zinc-400">Usuarios registrados: {users.length}</p>
 
       <Table>
         <TableHeader>
@@ -58,13 +64,13 @@ export default function AdminVerification() {
           {users.length === 0 ? (
             <TableRow>
               <TableCell colSpan={5} className="text-center py-12 text-zinc-500">
-                No hay usuarios para verificar
+                No hay usuarios registrados aún
               </TableCell>
             </TableRow>
           ) : (
             users.map((user) => (
               <TableRow key={user.id}>
-                <TableCell className="font-medium">{user.nickname || "—"}</TableCell>
+                <TableCell>{user.nickname || "—"}</TableCell>
                 <TableCell>{user.email}</TableCell>
                 <TableCell>{user.player_id || "—"}</TableCell>
                 <TableCell>{user.platform}</TableCell>
