@@ -15,21 +15,32 @@ export default function AdminDashboard() {
   useEffect(() => {
     const loadStats = async () => {
       try {
-        // Carga segura con fallback
-        const [profilesRes, clansRes] = await Promise.all([
-          supabase.from("profiles").select("*", { count: "exact", head: true }).catch(() => ({ count: 0 })),
-          supabase.from("clans").select("*", { count: "exact", head: true }).catch(() => ({ count: 0 })),
-        ]);
+        // Consultas seguras sin .catch() directo
+        const profilesQuery = await supabase
+          .from("profiles")
+          .select("*", { count: "exact", head: true });
+
+        const clansQuery = await supabase
+          .from("clans")
+          .select("*", { count: "exact", head: true });
 
         setStats({
-          players: (profilesRes as any).count || 0,
-          tournaments: 0, // tabla no existe aún
+          players: profilesQuery.count || 0,
+          tournaments: 0,
           scrims: 0,
-          clans: (clansRes as any).count || 0,
+          clans: clansQuery.count || 0,
         });
-      } catch (err) {
+      } catch (err: any) {
         console.error("Error cargando stats:", err);
-        toast.error("Error al cargar estadísticas");
+        toast.error("Error al cargar estadísticas del dashboard");
+        
+        // Valores por defecto si falla
+        setStats({
+          players: 0,
+          tournaments: 0,
+          scrims: 0,
+          clans: 0,
+        });
       } finally {
         setLoading(false);
       }
@@ -39,7 +50,7 @@ export default function AdminDashboard() {
   }, []);
 
   if (loading) {
-    return <div className="p-12 text-center">Cargando panel de administrador...</div>;
+    return <div className="p-12 text-center text-zinc-400">Cargando panel de administrador...</div>;
   }
 
   return (
@@ -49,10 +60,10 @@ export default function AdminDashboard() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <Card>
           <CardHeader>
-            <CardTitle>Jugadores</CardTitle>
+            <CardTitle>Jugadores Registrados</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-4xl font-bold">{stats.players}</p>
+            <p className="text-5xl font-bold text-yellow-400">{stats.players}</p>
           </CardContent>
         </Card>
 
@@ -61,7 +72,7 @@ export default function AdminDashboard() {
             <CardTitle>Torneos</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-4xl font-bold">{stats.tournaments}</p>
+            <p className="text-5xl font-bold">{stats.tournaments}</p>
           </CardContent>
         </Card>
 
@@ -70,7 +81,7 @@ export default function AdminDashboard() {
             <CardTitle>Scrims</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-4xl font-bold">{stats.scrims}</p>
+            <p className="text-5xl font-bold">{stats.scrims}</p>
           </CardContent>
         </Card>
 
@@ -79,15 +90,15 @@ export default function AdminDashboard() {
             <CardTitle>Clanes</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-4xl font-bold">{stats.clans}</p>
+            <p className="text-5xl font-bold">{stats.clans}</p>
           </CardContent>
         </Card>
       </div>
 
       <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-8 text-center">
-        <p className="text-zinc-400">
+        <p className="text-zinc-400 text-lg">
           Bienvenido al panel de administrador.<br />
-          Las demás secciones se irán activando a medida que creemos las tablas necesarias.
+          Las demás secciones se irán activando progresivamente.
         </p>
       </div>
     </div>
