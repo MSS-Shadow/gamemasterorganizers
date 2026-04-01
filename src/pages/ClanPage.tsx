@@ -85,8 +85,8 @@ export default function ClanPage() {
   }, [clanName]);
 
   const acceptRequest = async (requestId: string, nickname: string) => {
-    const { error: updateError } = await supabase
-      .from("clan_join_requests")
+    const { error: updateError } = await (supabase.from as any)("clan_join_requests")
+      .update({ status: "accepted" })
       .update({ status: "accepted" })
       .eq("id", requestId);
 
