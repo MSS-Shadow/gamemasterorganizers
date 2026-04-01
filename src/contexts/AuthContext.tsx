@@ -38,6 +38,33 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [roles, setRoles] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const fetchRoles = async (userId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", userId);
+
+      if (error || !data) {
+        setRoles([]);
+        return [];
+      }
+
+      // Protección contra null/undefined
+      const roleList = data
+        .map((r: any) => r?.role)
+        .filter((role): role is string => typeof role === "string")
+        .map(role => role.toLowerCase());
+
+      setRoles(roleList);
+      return roleList;
+    } catch (err) {
+      console.warn("Error fetching roles:", err);
+      setRoles([]);
+      return [];
+    }
+  };
+
   const fetchProfile = async (userId: string) => {
     try {
       const { data, error } = await supabase
@@ -47,56 +74,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         .single();
 
       if (error) {
-        console.warn("No se pudo cargar el perfil:", error.message);
         setProfile(null);
-      } else {
-        setProfile(data);
+        return;
       }
+      setProfile(data);
     } catch (err) {
-      console.warn("Error en fetchProfile:", err);
+      console.warn("Error fetching profile:", err);
       setProfile(null);
     }
   };
 
-  const fetchRoles = async (currentUser: User | null) => {
-    if (!currentUser) {
-      setRoles([]);
-      return;
-    }
-
-    try {
-      // Buscar roles en la tabla user_roles
-      const { data: roleData } = await supabase
-        .from("user_roles")
-        .select("role")
-        .eq("user_id", currentUser.id);
-
-      const userRoles = roleData?.map(r => r.role) || [];
-
-      // Fallback: si el email es el tuyo, forzamos rol admin (por seguridad)
-      if (currentUser.email === "portadormato@gmail.com") {
-        if (!userRoles.includes("admin")) {
-          userRoles.push("admin");
-        }
-      }
-
-      setRoles(userRoles);
-      console.log(`👤 Roles del usuario ${currentUser.email}:`, userRoles);
-    } catch (err) {
-      console.warn("Error al cargar roles:", err);
-      
-      // Fallback seguro: si es tu email, dar rol admin aunque falle la consulta
-      if (currentUser.email === "portadormato@gmail.com") {
-        setRoles(["admin"]);
-      } else {
-        setRoles([]);
-      }
-    }
-  };
-
   const refreshProfile = async () => {
-    if (user) {
-      await Promise.all([fetchProfile(user.id), fetchRoles(user)]);
+    if (user?.id) {
+      await Promise.all([fetchProfile(user.id), fetchRoles(user.id)]);
     }
   };
 
@@ -106,10 +96,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(session?.user ?? null);
 
       if (session?.user) {
-        await Promise.all([
-          fetchProfile(session.user.id),
-          fetchRoles(session.user)
-        ]);
+        await Promise.all([fetchProfile(session.user.id), fetchRoles(session.user.id)]);
       } else {
         setProfile(null);
         setRoles([]);
@@ -117,15 +104,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setLoading(false);
     });
 
-    // Cargar sesión inicial
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {
-        await Promise.all([
-          fetchProfile(session.user.id),
-          fetchRoles(session.user)
-        ]);
+        Promise.all([fetchProfile(session.user.id), fetchRoles(session.user.id)]);
       }
       setLoading(false);
     });
@@ -141,6 +124,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setRoles([]);
   };
 
+  const isAdmin = roles.includes("admin") || user?.email === "portadormato@gmail.com";
+
   return (
     <AuthContext.Provider value={{
       user,
@@ -148,7 +133,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       profile,
       roles,
       loading,
-      isAdmin: roles.includes("admin"),
+      isAdmin,
       isClanLeader: roles.includes("clan_leader"),
       signOut,
       refreshProfile
