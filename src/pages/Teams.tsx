@@ -70,8 +70,8 @@ export default function TeamsPage() {
 
       // Solicitudes pendientes para el líder actual
       if (profileData?.clan) {
-        const { data: requests } = await supabase
-          .from("clan_join_requests")
+        const { data: requests } = await (supabase.from as any)("clan_join_requests")
+          .select("*")
           .select("*")
           .eq("clan_name", profileData.clan)
           .eq("status", "pending");
