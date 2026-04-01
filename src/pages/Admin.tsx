@@ -1,18 +1,17 @@
 import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
-// Componentes seguros
 import AdminDashboard from "@/components/admin/AdminDashboard";
 import AdminPlayers from "@/components/admin/AdminPlayers";
 import AdminCreators from "@/components/admin/AdminCreators";
 import AdminVerification from "@/components/admin/AdminVerification";
 import AdminRoleManager from "@/components/admin/AdminRoleManager";
 
-// Placeholders seguros para las pestañas que faltan
+// Placeholders temporales para las pestañas que aún no tienen componente completo
 const Placeholder = ({ title }: { title: string }) => (
   <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-16 text-center">
-    <h3 className="text-xl font-medium mb-3">{title}</h3>
-    <p className="text-zinc-400">Esta sección estará disponible pronto.</p>
+    <h3 className="text-2xl font-medium mb-4">{title}</h3>
+    <p className="text-zinc-400">Esta sección se está configurando y estará disponible muy pronto.</p>
   </div>
 );
 
@@ -27,24 +26,24 @@ export default function AdminPage() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-6 lg:grid-cols-8 text-xs">
-          <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
-          <TabsTrigger value="players">Jugadores</TabsTrigger>
-          <TabsTrigger value="creators">Creadores</TabsTrigger>
-          <TabsTrigger value="clan-leaders">Clan Leaders</TabsTrigger>
-          <TabsTrigger value="tournaments">Torneos</TabsTrigger>
-          <TabsTrigger value="scoring">Scoring</TabsTrigger>
-          <TabsTrigger value="brackets">Brackets</TabsTrigger>
-          <TabsTrigger value="scrims">Scrims</TabsTrigger>
-          <TabsTrigger value="lobbies">Lobbies</TabsTrigger>
-          <TabsTrigger value="roles">Roles</TabsTrigger>
-          <TabsTrigger value="verification">Verificación</TabsTrigger>
-          <TabsTrigger value="reports">Reportes</TabsTrigger>
-          <TabsTrigger value="announcements">Anuncios</TabsTrigger>
-          <TabsTrigger value="smurf">Smurf Detection</TabsTrigger>
-          <TabsTrigger value="moderation">Moderación</TabsTrigger>
-          <TabsTrigger value="backup">Respaldo</TabsTrigger>
-          <TabsTrigger value="site-config">Configuración</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-6 lg:grid-cols-8 text-xs overflow-x-auto">
+          <TabsTrigger value="dashboard">📊 Dashboard</TabsTrigger>
+          <TabsTrigger value="players">👥 Jugadores</TabsTrigger>
+          <TabsTrigger value="creators">⭐ Creadores</TabsTrigger>
+          <TabsTrigger value="clan-leaders">🏆 Clan Leaders</TabsTrigger>
+          <TabsTrigger value="tournaments">🏆 Torneos</TabsTrigger>
+          <TabsTrigger value="scoring">📈 Scoring</TabsTrigger>
+          <TabsTrigger value="brackets">🔗 Brackets</TabsTrigger>
+          <TabsTrigger value="scrims">⚔️ Scrims</TabsTrigger>
+          <TabsTrigger value="lobbies">🎮 Lobbies</TabsTrigger>
+          <TabsTrigger value="roles">🔑 Roles</TabsTrigger>
+          <TabsTrigger value="verification">✅ Verificación</TabsTrigger>
+          <TabsTrigger value="reports">📋 Reportes</TabsTrigger>
+          <TabsTrigger value="announcements">📢 Anuncios</TabsTrigger>
+          <TabsTrigger value="smurf">🚩 Smurf Detection</TabsTrigger>
+          <TabsTrigger value="moderation">🛡️ Moderación</TabsTrigger>
+          <TabsTrigger value="backup">💾 Respaldo</TabsTrigger>
+          <TabsTrigger value="site-config">⚙️ Configuración</TabsTrigger>
         </TabsList>
 
         <TabsContent value="dashboard"><AdminDashboard /></TabsContent>
@@ -53,8 +52,8 @@ export default function AdminPage() {
         <TabsContent value="clan-leaders"><Placeholder title="Solicitudes de Clan Leaders" /></TabsContent>
         <TabsContent value="tournaments"><Placeholder title="Gestión de Torneos" /></TabsContent>
         <TabsContent value="scoring"><Placeholder title="Scoring de Torneos" /></TabsContent>
-        <TabsContent value="brackets"><Placeholder title="Brackets" /></TabsContent>
-        <TabsContent value="scrims"><Placeholder title="Scrims" /></TabsContent>
+        <TabsContent value="brackets"><Placeholder title="Gestión de Brackets" /></TabsContent>
+        <TabsContent value="scrims"><Placeholder title="Gestión de Scrims" /></TabsContent>
         <TabsContent value="lobbies"><Placeholder title="Generador de Lobbies" /></TabsContent>
         <TabsContent value="roles"><AdminRoleManager /></TabsContent>
         <TabsContent value="verification"><AdminVerification /></TabsContent>
