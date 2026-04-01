@@ -45,21 +45,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         .select("role")
         .eq("user_id", userId);
 
-      if (error || !data) {
+      if (error || !data || data.length === 0) {
         setRoles([]);
         return [];
       }
 
-      // Protección contra null/undefined
-      const roleList = data
-        .map((r: any) => r?.role)
-        .filter((role): role is string => typeof role === "string")
-        .map(role => role.toLowerCase());
+      // Protección máxima contra null/undefined
+      const safeRoles = data
+        .map((item: any) => item?.role)
+        .filter((role): role is string => typeof role === "string" && role.length > 0)
+        .map(role => role.toLowerCase().trim());
 
-      setRoles(roleList);
-      return roleList;
+      setRoles(safeRoles);
+      return safeRoles;
     } catch (err) {
-      console.warn("Error fetching roles:", err);
+      console.warn("Error al cargar roles:", err);
       setRoles([]);
       return [];
     }
@@ -79,7 +79,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
       setProfile(data);
     } catch (err) {
-      console.warn("Error fetching profile:", err);
+      console.warn("Error al cargar perfil:", err);
       setProfile(null);
     }
   };
@@ -95,7 +95,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setSession(session);
       setUser(session?.user ?? null);
 
-      if (session?.user) {
+      if (session?.user?.id) {
         await Promise.all([fetchProfile(session.user.id), fetchRoles(session.user.id)]);
       } else {
         setProfile(null);
@@ -104,10 +104,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setLoading(false);
     });
 
+    // Carga inicial
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
-      if (session?.user) {
+      if (session?.user?.id) {
         Promise.all([fetchProfile(session.user.id), fetchRoles(session.user.id)]);
       }
       setLoading(false);
