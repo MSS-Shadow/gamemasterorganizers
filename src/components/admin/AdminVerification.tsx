@@ -8,29 +8,42 @@ export default function AdminVerification() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetch = async () => {
+    const fetchUsers = async () => {
       try {
         const { data, error } = await supabase
           .from("profiles")
-          .select("id, nickname, email, player_id, platform, created_at")
-          .order("created_at", { ascending: false });
+          .select("id, nickname, email, player_id, platform, country, created_at")
+          .order("created_at", { ascending: false })
+          .limit(50);
 
-        if (error) throw error;
+        if (error) {
+          console.error("Error en profiles:", error);
+          toast.error("Error al cargar usuarios");
+          setUsers([]);
+          return;
+        }
+
         setUsers(data || []);
       } catch (err) {
-        toast.error("Error al cargar verificaciones");
+        console.error(err);
+        toast.error("Error inesperado");
       } finally {
         setLoading(false);
       }
     };
-    fetch();
+
+    fetchUsers();
   }, []);
 
-  if (loading) return <div className="p-12 text-center">Cargando...</div>;
+  if (loading) {
+    return <div className="p-12 text-center text-zinc-400">Cargando verificaciones...</div>;
+  }
 
   return (
     <div className="space-y-6">
       <h2 className="text-2xl font-bold">Verificación de Cuentas</h2>
+      <p className="text-zinc-400 mb-4">Usuarios registrados ({users.length})</p>
+
       <Table>
         <TableHeader>
           <TableRow>
@@ -38,17 +51,27 @@ export default function AdminVerification() {
             <TableHead>Email</TableHead>
             <TableHead>Player ID</TableHead>
             <TableHead>Plataforma</TableHead>
+            <TableHead>País</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
-          {users.map((u) => (
-            <TableRow key={u.id}>
-              <TableCell>{u.nickname}</TableCell>
-              <TableCell>{u.email}</TableCell>
-              <TableCell>{u.player_id || "—"}</TableCell>
-              <TableCell>{u.platform}</TableCell>
+          {users.length === 0 ? (
+            <TableRow>
+              <TableCell colSpan={5} className="text-center py-12 text-zinc-500">
+                No hay usuarios para verificar
+              </TableCell>
             </TableRow>
-          ))}
+          ) : (
+            users.map((user) => (
+              <TableRow key={user.id}>
+                <TableCell className="font-medium">{user.nickname || "—"}</TableCell>
+                <TableCell>{user.email}</TableCell>
+                <TableCell>{user.player_id || "—"}</TableCell>
+                <TableCell>{user.platform}</TableCell>
+                <TableCell>{user.country}</TableCell>
+              </TableRow>
+            ))
+          )}
         </TableBody>
       </Table>
     </div>
