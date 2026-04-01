@@ -38,6 +38,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [roles, setRoles] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // Función ultra segura para roles
   const fetchRoles = async (userId: string) => {
     try {
       const { data, error } = await supabase
@@ -45,24 +46,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         .select("role")
         .eq("user_id", userId);
 
-      if (error || !data) {
+      if (error || !data || data.length === 0) {
         setRoles([]);
         return [];
       }
 
-      // Protección extrema contra null
       const safeRoles: string[] = [];
+
       for (const item of data) {
-        const role = item?.role;
-        if (typeof role === "string" && role.length > 0) {
-          safeRoles.push(role.toLowerCase().trim());
+        const roleValue = item?.role;
+        if (typeof roleValue === "string" && roleValue.length > 0) {
+          safeRoles.push(roleValue.toLowerCase().trim());
         }
       }
 
       setRoles(safeRoles);
       return safeRoles;
     } catch (err) {
-      console.warn("Error al cargar roles:", err);
+      console.warn("Error fetching roles:", err);
       setRoles([]);
       return [];
     }
@@ -78,7 +79,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       setProfile(error ? null : data);
     } catch (err) {
-      console.warn("Error al cargar perfil:", err);
+      console.warn("Error fetching profile:", err);
       setProfile(null);
     }
   };
@@ -95,7 +96,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(session?.user ?? null);
 
       if (session?.user?.id) {
-        await Promise.all([fetchProfile(session.user.id), fetchRoles(session.user.id)]);
+        // Ejecutamos en paralelo pero con protección
+        await Promise.allSettled([
+          fetchProfile(session.user.id),
+          fetchRoles(session.user.id)
+        ]);
       } else {
         setProfile(null);
         setRoles([]);
@@ -107,7 +112,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user?.id) {
-        Promise.all([fetchProfile(session.user.id), fetchRoles(session.user.id)]);
+        Promise.allSettled([
+          fetchProfile(session.user.id),
+          fetchRoles(session.user.id)
+        ]);
       }
       setLoading(false);
     });
