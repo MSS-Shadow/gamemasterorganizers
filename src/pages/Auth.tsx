@@ -82,7 +82,7 @@ export default function Auth() {
         });
 
         if (selectedClan !== "sin_clan") {
-          await supabase.from("clan_join_requests").insert({
+          await (supabase.from as any)("clan_join_requests").insert({
             user_id: authData.user.id,
             nickname: form.nickname.trim(),
             player_id: form.playerId.trim(),
