@@ -45,16 +45,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         .select("role")
         .eq("user_id", userId);
 
-      if (error || !data || data.length === 0) {
+      if (error || !data) {
         setRoles([]);
         return [];
       }
 
-      // Protección máxima contra null/undefined
-      const safeRoles = data
-        .map((item: any) => item?.role)
-        .filter((role): role is string => typeof role === "string" && role.length > 0)
-        .map(role => role.toLowerCase().trim());
+      // Protección extrema contra null
+      const safeRoles: string[] = [];
+      for (const item of data) {
+        const role = item?.role;
+        if (typeof role === "string" && role.length > 0) {
+          safeRoles.push(role.toLowerCase().trim());
+        }
+      }
 
       setRoles(safeRoles);
       return safeRoles;
@@ -73,11 +76,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         .eq("user_id", userId)
         .single();
 
-      if (error) {
-        setProfile(null);
-        return;
-      }
-      setProfile(data);
+      setProfile(error ? null : data);
     } catch (err) {
       console.warn("Error al cargar perfil:", err);
       setProfile(null);
@@ -104,7 +103,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setLoading(false);
     });
 
-    // Carga inicial
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
