@@ -85,6 +85,36 @@ export type Database = {
           },
         ]
       }
+      clan_join_requests: {
+        Row: {
+          clan_name: string
+          created_at: string | null
+          id: string
+          nickname: string
+          player_id: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          clan_name: string
+          created_at?: string | null
+          id?: string
+          nickname: string
+          player_id: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          clan_name?: string
+          created_at?: string | null
+          id?: string
+          nickname?: string
+          player_id?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       clan_leader_requests: {
         Row: {
           clan_name: string
@@ -262,6 +292,7 @@ export type Database = {
           created_at: string
           email: string
           id: string
+          is_clan_leader: boolean | null
           nickname: string
           platform: string
           player_id: string
@@ -276,6 +307,7 @@ export type Database = {
           created_at?: string
           email: string
           id?: string
+          is_clan_leader?: boolean | null
           nickname: string
           platform: string
           player_id: string
@@ -290,6 +322,7 @@ export type Database = {
           created_at?: string
           email?: string
           id?: string
+          is_clan_leader?: boolean | null
           nickname?: string
           platform?: string
           player_id?: string
