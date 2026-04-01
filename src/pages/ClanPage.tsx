@@ -67,8 +67,8 @@ export default function ClanPage() {
       setMembers(membersData || []);
 
       // Cargar solicitudes pendientes (del nuevo sistema)
-      const { data: requestsData } = await supabase
-        .from("clan_join_requests")
+      const { data: requestsData } = await (supabase.from as any)("clan_join_requests")
+        .select("*")
         .select("*")
         .eq("clan_name", decoded)
         .eq("status", "pending")
