@@ -89,8 +89,7 @@ export default function AdminClanLeaderRequests() {
         });
 
         // Actualizar perfil
-        await supabase
-          .from("profiles")
+        await (supabase.from as any)("profiles")
           .update({ is_clan_leader: true })
           .eq("user_id", req.user_id);
 
