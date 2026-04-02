@@ -33,24 +33,20 @@ export default function AdminRoleManager() {
   const toggleRole = async (userId: string, role: string, currentValue: boolean) => {
     try {
       if (role === "clan_leader") {
-        // Actualizar is_clan_leader en profiles
         const { error } = await supabase
           .from("profiles")
           .update({ is_clan_leader: !currentValue })
           .eq("id", userId);
-
         if (error) throw error;
       } else {
-        // Para otros roles (admin, creator) usamos la tabla user_roles
         if (!currentValue) {
-          await supabase.from("user_roles").insert({ user_id: userId, role });
+          await supabase.from("user_roles").insert({ user_id: userId, role: role as any });
         } else {
-          await supabase.from("user_roles").delete().eq("user_id", userId).eq("role", role);
+          await supabase.from("user_roles").delete().eq("user_id", userId).eq("role", role as any);
         }
       }
-
       toast.success(`Rol ${role} actualizado`);
-      fetchUsers(); // Refrescar lista
+      fetchUsers();
     } catch (err: any) {
       toast.error("Error al actualizar rol");
     }
