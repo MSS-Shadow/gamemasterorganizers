@@ -59,6 +59,9 @@ export default function Auth() {
     setLoading(true);
 
     try {
+      // Sign out any existing session before creating new account
+      await supabase.auth.signOut();
+      
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: form.email.trim().toLowerCase(),
         password: form.password,
