@@ -70,16 +70,21 @@ export default function Auth() {
       if (authError) throw authError;
 
       if (authData.user) {
-        await supabase.from("profiles").insert({
-          id: authData.user.id,
+        const { error: profileError } = await supabase.from("profiles").insert({
           user_id: authData.user.id,
           email: form.email.trim().toLowerCase(),
           nickname: form.nickname.trim(),
           player_id: form.playerId.trim(),
           platform: form.platform,
           country: form.country,
-          clan: null,
+          clan: selectedClan !== "sin_clan" ? selectedClan : "",
         });
+
+        if (profileError) {
+          console.error("Profile insert error:", profileError);
+          toast.error("Error al crear perfil: " + profileError.message);
+          return;
+        }
 
         if (selectedClan !== "sin_clan") {
           await (supabase.from as any)("clan_join_requests").insert({
