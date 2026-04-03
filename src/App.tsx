@@ -37,6 +37,7 @@ import NotFound from "./pages/NotFound";
 // Importar las páginas de recuperación de contraseña
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
+import CreatorDashboard from "./pages/CreatorDashboard";
 
 const queryClient = new QueryClient();
 
