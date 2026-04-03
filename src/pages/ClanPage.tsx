@@ -13,7 +13,6 @@ interface Clan {
   name: string;
   leader_user_id: string;
   leader_nickname: string;
-  description?: string;
   created_at: string;
 }
 
@@ -47,7 +46,6 @@ export default function ClanPage() {
     if (!clanName) return;
     const decoded = decodeURIComponent(clanName);
 
-    // Cargar información del clan
     const { data: clanData } = await supabase
       .from("clans")
       .select("*")
@@ -57,7 +55,6 @@ export default function ClanPage() {
     if (clanData) {
       setClan(clanData as Clan);
 
-      // Cargar miembros
       const { data: membersData } = await supabase
         .from("clan_members")
         .select("*")
@@ -66,9 +63,8 @@ export default function ClanPage() {
 
       setMembers(membersData || []);
 
-      // Cargar solicitudes pendientes (del nuevo sistema)
-      const { data: requestsData } = await (supabase.from as any)("clan_join_requests")
-        .select("*")
+      const { data: requestsData } = await supabase
+        .from("clan_join_requests")
         .select("*")
         .eq("clan_name", decoded)
         .eq("status", "pending")
@@ -85,8 +81,8 @@ export default function ClanPage() {
   }, [clanName]);
 
   const acceptRequest = async (requestId: string, nickname: string) => {
-    const { error: updateError } = await (supabase.from as any)("clan_join_requests")
-      .update({ status: "accepted" })
+    const { error: updateError } = await supabase
+      .from("clan_join_requests")
       .update({ status: "accepted" })
       .eq("id", requestId);
 
@@ -95,24 +91,18 @@ export default function ClanPage() {
       return;
     }
 
-    // Asignar clan al jugador
-    const { error: profileError } = await supabase
+    await supabase
       .from("profiles")
       .update({ clan: clan?.name })
       .eq("nickname", nickname);
-
-    if (profileError) {
-      toast.error("Error al actualizar el perfil del jugador");
-      return;
-    }
 
     toast.success(`${nickname} ahora es miembro del clan`);
     fetchClan();
   };
 
   const rejectRequest = async (requestId: string, nickname: string) => {
-    const { error } = await (supabase.from as any)("clan_join_requests")
-      .update({ status: "rejected" })
+    const { error } = await supabase
+      .from("clan_join_requests")
       .update({ status: "rejected" })
       .eq("id", requestId);
 
@@ -142,11 +132,11 @@ export default function ClanPage() {
     fetchClan();
   };
 
-  if (loading) return <div className="text-center py-20 text-zinc-400">Cargando clan...</div>;
+  if (loading) return <div className="text-center py-20 text-muted-foreground">Cargando clan...</div>;
   if (!clan) return (
     <div className="text-center py-20">
-      <p className="text-zinc-400 mb-4">Clan no encontrado.</p>
-      <Link to="/teams" className="text-yellow-400 hover:underline">← Volver a Equipos</Link>
+      <p className="text-muted-foreground mb-4">Clan no encontrado.</p>
+      <Link to="/teams" className="text-primary hover:underline">← Volver a Equipos</Link>
     </div>
   );
 
@@ -154,26 +144,24 @@ export default function ClanPage() {
 
   return (
     <div className="max-w-4xl mx-auto space-y-10">
-      <Link to="/teams" className="inline-flex items-center gap-2 text-zinc-400 hover:text-white transition-colors">
+      <Link to="/teams" className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors">
         <ArrowLeft className="h-4 w-4" /> Volver a Equipos
       </Link>
 
-      {/* Header del Clan */}
       <Card>
         <CardHeader>
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div className="flex items-center gap-4">
-              <div className="p-4 bg-yellow-400/10 rounded-2xl">
-                <Users className="h-10 w-10 text-yellow-400" />
+              <div className="p-4 bg-primary/10 rounded-2xl">
+                <Users className="h-10 w-10 text-primary" />
               </div>
               <div>
                 <CardTitle className="text-4xl">{clan.name}</CardTitle>
-                <p className="text-zinc-400">Líder: <span className="text-white">{clan.leader_nickname}</span></p>
+                <p className="text-muted-foreground">Líder: <span className="text-foreground">{clan.leader_nickname}</span></p>
               </div>
             </div>
-
             <div className="text-right">
-              <p className="text-sm text-zinc-500">Creado el</p>
+              <p className="text-sm text-muted-foreground">Creado el</p>
               <p className="font-medium">{new Date(clan.created_at).toLocaleDateString("es")}</p>
             </div>
           </div>
@@ -181,24 +169,22 @@ export default function ClanPage() {
       </Card>
 
       <div className="grid md:grid-cols-3 gap-6">
-        {/* Estadísticas */}
         <Card className="md:col-span-1">
           <CardContent className="pt-6">
             <div className="text-center">
-              <p className="text-5xl font-bold text-white">{approvedMembers.length + 1}</p>
-              <p className="text-zinc-400 text-sm mt-1">Miembros totales</p>
+              <p className="text-5xl font-bold text-foreground">{approvedMembers.length + 1}</p>
+              <p className="text-muted-foreground text-sm mt-1">Miembros totales</p>
             </div>
           </CardContent>
         </Card>
 
-        {/* Acciones rápidas para el líder */}
         {isLeader && (
           <Card className="md:col-span-2">
             <CardHeader>
               <CardTitle>Gestión de Clan</CardTitle>
             </CardHeader>
             <CardContent>
-              <Link to="/clan-leader-request" className="text-yellow-400 hover:underline">
+              <Link to="/clan-leader-request" className="text-primary hover:underline">
                 Editar información del clan →
               </Link>
             </CardContent>
@@ -206,27 +192,23 @@ export default function ClanPage() {
         )}
       </div>
 
-      {/* Miembros y Solicitudes */}
       <div className="grid lg:grid-cols-2 gap-8">
-        {/* Miembros */}
         <Card>
           <CardHeader>
             <CardTitle>Miembros ({approvedMembers.length + 1})</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            {/* Líder */}
-            <div className="flex items-center justify-between bg-zinc-900 p-4 rounded-2xl">
+            <div className="flex items-center justify-between bg-muted/50 p-4 rounded-2xl">
               <div className="flex items-center gap-3">
-                <ShieldCheck className="h-5 w-5 text-yellow-400" />
+                <ShieldCheck className="h-5 w-5 text-primary" />
                 <span className="font-medium">{clan.leader_nickname}</span>
               </div>
-              <Badge className="bg-yellow-400/20 text-yellow-400">Líder</Badge>
+              <Badge className="bg-primary/20 text-primary">Líder</Badge>
             </div>
 
-            {/* Miembros normales */}
             {approvedMembers.map((m) => (
-              <div key={m.id} className="flex items-center justify-between bg-zinc-900 p-4 rounded-2xl">
-                <Link to={`/player/${m.nickname}`} className="font-medium hover:text-yellow-400 transition-colors">
+              <div key={m.id} className="flex items-center justify-between bg-muted/50 p-4 rounded-2xl">
+                <Link to={`/player/${m.nickname}`} className="font-medium hover:text-primary transition-colors">
                   {m.nickname}
                 </Link>
                 {isLeader && (
@@ -234,7 +216,7 @@ export default function ClanPage() {
                     variant="ghost"
                     size="sm"
                     onClick={() => removeMember(m.id, m.nickname)}
-                    className="text-red-400 hover:text-red-500"
+                    className="text-destructive hover:text-destructive"
                   >
                     <UserMinus className="h-4 w-4" />
                   </Button>
@@ -244,7 +226,6 @@ export default function ClanPage() {
           </CardContent>
         </Card>
 
-        {/* Solicitudes Pendientes */}
         {isLeader && (
           <Card>
             <CardHeader className="flex flex-row items-center justify-between">
@@ -257,15 +238,14 @@ export default function ClanPage() {
               {joinRequests.length > 0 ? (
                 <div className="space-y-3">
                   {joinRequests.map((req) => (
-                    <div key={req.id} className="bg-zinc-900 p-4 rounded-2xl flex items-center justify-between">
+                    <div key={req.id} className="bg-muted/50 p-4 rounded-2xl flex items-center justify-between">
                       <div>
                         <p className="font-medium">{req.nickname}</p>
-                        <p className="text-xs text-zinc-500">ID: {req.player_id}</p>
+                        <p className="text-xs text-muted-foreground">ID: {req.player_id}</p>
                       </div>
                       <div className="flex gap-2">
                         <Button
                           size="sm"
-                          className="bg-green-600 hover:bg-green-700"
                           onClick={() => acceptRequest(req.id, req.nickname)}
                         >
                           Aceptar
@@ -282,7 +262,7 @@ export default function ClanPage() {
                   ))}
                 </div>
               ) : (
-                <p className="text-center text-zinc-500 py-8">No hay solicitudes pendientes.</p>
+                <p className="text-center text-muted-foreground py-8">No hay solicitudes pendientes.</p>
               )}
             </CardContent>
           </Card>
