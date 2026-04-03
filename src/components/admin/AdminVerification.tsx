@@ -1,12 +1,108 @@
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
+import { RefreshCw, ExternalLink } from "lucide-react";
+import { toast } from "sonner";
 
 export default function AdminVerification() {
+  const [requests, setRequests] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const fetch = async () => {
+    setLoading(true);
+    const { data } = await supabase.from("verification_requests").select("*").order("created_at", { ascending: false });
+    setRequests(data || []);
+    setLoading(false);
+  };
+
+  useEffect(() => { fetch(); }, []);
+
+  const handleAction = async (id: string, status: string, nickname: string) => {
+    const { error } = await supabase.from("verification_requests").update({ status, reviewed_at: new Date().toISOString() }).eq("id", id);
+    if (error) { toast.error(error.message); return; }
+
+    if (status === "approved") {
+      await supabase.from("profiles").update({ verified: true }).eq("nickname", nickname);
+    }
+
+    toast.success(`Solicitud ${status === "approved" ? "aprobada" : "rechazada"}`);
+    fetch();
+  };
+
   return (
     <div className="space-y-6">
-      <h2 className="text-2xl font-bold">Verificación de Cuentas</h2>
-      <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-16 text-center">
-        <p className="text-zinc-400">La verificación de usuarios estará disponible pronto.</p>
+      <div className="flex items-center justify-between">
+        <h2 className="text-2xl font-bold text-foreground">Verificación de Cuentas ({requests.length})</h2>
+        <Button variant="ghost" size="sm" onClick={fetch} disabled={loading}>
+          <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
+        </Button>
       </div>
+
+      {loading ? (
+        <p className="text-center text-muted-foreground py-8">Cargando...</p>
+      ) : requests.length === 0 ? (
+        <p className="text-center text-muted-foreground py-8">No hay solicitudes de verificación.</p>
+      ) : (
+        <div className="border border-border rounded-lg overflow-hidden">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Nickname</TableHead>
+                <TableHead>Player ID</TableHead>
+                <TableHead>Email</TableHead>
+                <TableHead>Capturas</TableHead>
+                <TableHead>Estado</TableHead>
+                <TableHead>Fecha</TableHead>
+                <TableHead>Acciones</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {requests.map((r) => (
+                <TableRow key={r.id}>
+                  <TableCell className="font-medium">{r.nickname}</TableCell>
+                  <TableCell className="font-mono text-xs">{r.player_id}</TableCell>
+                  <TableCell className="text-xs">{r.email}</TableCell>
+                  <TableCell>
+                    <div className="flex gap-1">
+                      {r.profile_screenshot_url && (
+                        <a href={r.profile_screenshot_url} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline text-xs inline-flex items-center gap-0.5">
+                          <ExternalLink className="h-3 w-3" /> Perfil
+                        </a>
+                      )}
+                      {r.id_screenshot_url && (
+                        <a href={r.id_screenshot_url} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline text-xs inline-flex items-center gap-0.5">
+                          <ExternalLink className="h-3 w-3" /> ID
+                        </a>
+                      )}
+                      {r.additional_doc_url && (
+                        <a href={r.additional_doc_url} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline text-xs inline-flex items-center gap-0.5">
+                          <ExternalLink className="h-3 w-3" /> Extra
+                        </a>
+                      )}
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant={r.status === "approved" ? "default" : r.status === "rejected" ? "destructive" : "secondary"} className="text-xs">
+                      {r.status}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="text-xs text-muted-foreground">{new Date(r.created_at).toLocaleDateString("es")}</TableCell>
+                  <TableCell>
+                    {r.status === "pending" && (
+                      <div className="flex gap-1">
+                        <Button size="sm" className="h-7 text-xs" onClick={() => handleAction(r.id, "approved", r.nickname)}>Aprobar</Button>
+                        <Button size="sm" variant="destructive" className="h-7 text-xs" onClick={() => handleAction(r.id, "rejected", r.nickname)}>Rechazar</Button>
+                      </div>
+                    )}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+      )}
     </div>
   );
 }
