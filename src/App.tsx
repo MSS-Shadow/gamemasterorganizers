@@ -68,6 +68,7 @@ const App = () => (
               <Route path="/hall-of-fame" element={<HallOfFame />} />
               <Route path="/creators" element={<Creators />} />
               <Route path="/creator-request" element={<CreatorRequest />} />
+              <Route path="/creator-dashboard" element={<CreatorDashboard />} />
               <Route path="/activity" element={<Activity />} />
               <Route path="/about" element={<About />} />
               <Route path="/rules" element={<Rules />} />
