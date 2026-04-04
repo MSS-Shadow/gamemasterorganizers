@@ -1,110 +1,123 @@
 import { useState, useEffect } from "react";
-import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { supabase } from "@/integrations/supabase/client";
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
+import { Textarea } from "@/components/ui/textarea";
+import { RefreshCw, ExternalLink } from "lucide-react";
 import { toast } from "sonner";
 
-export default function AdminRoleManager() {
-  const [users, setUsers] = useState<any[]>([]);
+export default function AdminReports() {
+  const [reports, setReports] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [notes, setNotes] = useState<Record<string, string>>({});
 
-  useEffect(() => {
-    fetchUsers();
-  }, []);
-
-  const fetchUsers = async () => {
+  const fetchReports = async () => {
     try {
       setLoading(true);
-      
       const { data, error } = await supabase
-        .from("profiles")
-        .select(`
-          id, 
-          email, 
-          nickname, 
-          is_clan_leader,
-          user_roles!inner(role)
-        `)
+        .from("reports")
+        .select("*")
         .order("created_at", { ascending: false });
-
-      if (error) {
-        console.error("Error fetching users:", error);
-        toast.error("Error al cargar roles");
-        setUsers([]);
-        return;
-      }
-
-      // Procesamiento seguro para evitar .toLowerCase() en null
-      const processed = (data || []).map((user: any) => ({
-        ...user,
-        roles: Array.isArray(user.user_roles) 
-          ? user.user_roles.map((r: any) => r?.role).filter(Boolean)
-          : []
-      }));
-
-      setUsers(processed);
+      if (error) throw error;
+      setReports(data || []);
     } catch (err: any) {
-      console.error("Unexpected error:", err);
-      toast.error("Error inesperado al cargar roles");
+      console.error("Error loading reports:", err);
+      toast.error("Error al cargar reportes");
     } finally {
       setLoading(false);
     }
   };
 
-  if (loading) {
-    return <div className="p-12 text-center text-zinc-400">Cargando gestión de roles...</div>;
-  }
+  useEffect(() => { fetchReports(); }, []);
+
+  const handleResolve = async (id: string, status: string) => {
+    try {
+      const update: any = { status, resolved_at: new Date().toISOString() };
+      if (notes[id]) update.admin_notes = notes[id];
+      const { error } = await supabase.from("reports").update(update).eq("id", id);
+      if (error) throw error;
+      toast.success(`Reporte marcado como ${status}`);
+      fetchReports();
+    } catch (err: any) {
+      toast.error("Error al actualizar reporte");
+    }
+  };
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold">Gestión de Roles</h2>
-        <Button onClick={fetchUsers} variant="outline" size="sm">
-          Actualizar
+      <div className="flex items-center justify-between">
+        <h2 className="text-2xl font-bold text-foreground">Reportes ({reports.length})</h2>
+        <Button variant="ghost" size="sm" onClick={fetchReports} disabled={loading}>
+          <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
         </Button>
       </div>
 
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Nickname</TableHead>
-            <TableHead>Email</TableHead>
-            <TableHead>Roles</TableHead>
-            <TableHead>Clan Leader</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {users.length === 0 ? (
-            <TableRow>
-              <TableCell colSpan={4} className="text-center py-8 text-zinc-400">
-                No hay usuarios registrados
-              </TableCell>
-            </TableRow>
-          ) : (
-            users.map((user) => (
-              <TableRow key={user.id}>
-                <TableCell className="font-medium">{user.nickname || "—"}</TableCell>
-                <TableCell>{user.email || "—"}</TableCell>
-                <TableCell>
-                  {user.roles && user.roles.length > 0 ? (
-                    user.roles.map((role: string, i: number) => (
-                      <Badge key={i} variant="secondary" className="mr-1">
-                        {role}
-                      </Badge>
-                    ))
-                  ) : (
-                    <span className="text-zinc-500">Sin roles</span>
-                  )}
-                </TableCell>
-                <TableCell>
-                  {user.is_clan_leader ? "✅ Sí" : "❌ No"}
-                </TableCell>
+      {loading ? (
+        <p className="text-center text-muted-foreground py-8">Cargando reportes...</p>
+      ) : reports.length === 0 ? (
+        <p className="text-center text-muted-foreground py-8">No hay reportes.</p>
+      ) : (
+        <div className="border border-border rounded-lg overflow-hidden">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Reportado por</TableHead>
+                <TableHead>Jugador reportado</TableHead>
+                <TableHead>Categoría</TableHead>
+                <TableHead>Descripción</TableHead>
+                <TableHead>Evidencia</TableHead>
+                <TableHead>Estado</TableHead>
+                <TableHead>Fecha</TableHead>
+                <TableHead>Notas / Acciones</TableHead>
               </TableRow>
-            ))
-          )}
-        </TableBody>
-      </Table>
+            </TableHeader>
+            <TableBody>
+              {reports.map((r) => (
+                <TableRow key={r.id}>
+                  <TableCell className="font-medium text-xs">{r.reporter_nickname}</TableCell>
+                  <TableCell className="text-xs">{r.reported_player}</TableCell>
+                  <TableCell>
+                    <Badge variant="secondary" className="text-xs">{r.category}</Badge>
+                  </TableCell>
+                  <TableCell className="text-xs max-w-[200px] truncate">{r.description}</TableCell>
+                  <TableCell>
+                    {r.screenshot_url ? (
+                      <a href={r.screenshot_url} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline text-xs inline-flex items-center gap-0.5">
+                        <ExternalLink className="h-3 w-3" /> Ver
+                      </a>
+                    ) : "—"}
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant={r.status === "resolved" ? "default" : r.status === "dismissed" ? "outline" : "secondary"} className="text-xs">
+                      {r.status}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="text-xs text-muted-foreground">{new Date(r.created_at).toLocaleDateString("es")}</TableCell>
+                  <TableCell>
+                    {r.status === "pending" ? (
+                      <div className="space-y-1">
+                        <Textarea
+                          placeholder="Notas admin..."
+                          className="h-16 text-xs"
+                          value={notes[r.id] || ""}
+                          onChange={(e) => setNotes({ ...notes, [r.id]: e.target.value })}
+                        />
+                        <div className="flex gap-1">
+                          <Button size="sm" className="h-7 text-xs" onClick={() => handleResolve(r.id, "resolved")}>Resolver</Button>
+                          <Button size="sm" variant="destructive" className="h-7 text-xs" onClick={() => handleResolve(r.id, "dismissed")}>Descartar</Button>
+                        </div>
+                      </div>
+                    ) : (
+                      <span className="text-xs text-muted-foreground">{r.admin_notes || "—"}</span>
+                    )}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+      )}
     </div>
   );
 }

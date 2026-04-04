@@ -42,7 +42,7 @@ export default function AdminVerification() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold text-foreground">Verificación de Cuentas ({requests.length})</h2>
-        <Button variant="ghost" size="sm" onClick={fetch} disabled={loading}>
+        <Button variant="ghost" size="sm" onClick={fetchData} disabled={loading}>
           <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
         </Button>
       </div>
