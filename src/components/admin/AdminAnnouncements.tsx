@@ -20,9 +20,17 @@ export default function AdminAnnouncements() {
   const [deleteText, setDeleteText] = useState("");
 
   const fetchAnnouncements = async () => {
-    const { data } = await supabase.from("announcements").select("*").order("created_at", { ascending: false });
-    setAnnouncements((data as any[]) ?? []);
-    setLoading(false);
+    try {
+      setLoading(true);
+      const { data, error } = await supabase.from("announcements").select("*").order("created_at", { ascending: false });
+      if (error) throw error;
+      setAnnouncements((data as any[]) ?? []);
+    } catch (err: any) {
+      console.error("Error loading announcements:", err);
+      toast.error("Error al cargar anuncios");
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => { fetchAnnouncements(); }, []);

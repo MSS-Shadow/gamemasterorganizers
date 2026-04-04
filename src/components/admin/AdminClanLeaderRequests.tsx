@@ -75,7 +75,6 @@ export default function AdminClanLeaderRequests() {
             name: req.clan_name,
             leader_user_id: req.user_id,
             leader_nickname: req.nickname,
-            description: req.description,
           });
 
           if (clanError) throw clanError;
