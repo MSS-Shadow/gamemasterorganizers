@@ -10,14 +10,21 @@ export default function AdminVerification() {
   const [requests, setRequests] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const fetch = async () => {
-    setLoading(true);
-    const { data } = await supabase.from("verification_requests").select("*").order("created_at", { ascending: false });
-    setRequests(data || []);
-    setLoading(false);
+  const fetchData = async () => {
+    try {
+      setLoading(true);
+      const { data, error } = await supabase.from("verification_requests").select("*").order("created_at", { ascending: false });
+      if (error) throw error;
+      setRequests(data || []);
+    } catch (err: any) {
+      console.error("Error loading verification requests:", err);
+      toast.error("Error al cargar solicitudes");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  useEffect(() => { fetch(); }, []);
+  useEffect(() => { fetchData(); }, []);
 
   const handleAction = async (id: string, status: string, nickname: string) => {
     const { error } = await supabase.from("verification_requests").update({ status, reviewed_at: new Date().toISOString() }).eq("id", id);
@@ -28,14 +35,14 @@ export default function AdminVerification() {
     }
 
     toast.success(`Solicitud ${status === "approved" ? "aprobada" : "rechazada"}`);
-    fetch();
+    fetchData();
   };
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold text-foreground">Verificación de Cuentas ({requests.length})</h2>
-        <Button variant="ghost" size="sm" onClick={fetch} disabled={loading}>
+        <Button variant="ghost" size="sm" onClick={fetchData} disabled={loading}>
           <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
         </Button>
       </div>

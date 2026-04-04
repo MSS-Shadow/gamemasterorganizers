@@ -14,10 +14,17 @@ export default function AdminPlayers() {
   const [loading, setLoading] = useState(true);
 
   const fetchPlayers = async () => {
-    setLoading(true);
-    const { data } = await supabase.from("profiles").select("*").order("created_at", { ascending: false });
-    setPlayers(data || []);
-    setLoading(false);
+    try {
+      setLoading(true);
+      const { data, error } = await supabase.from("profiles").select("*").order("created_at", { ascending: false });
+      if (error) throw error;
+      setPlayers(data || []);
+    } catch (err: any) {
+      console.error("Error loading players:", err);
+      toast.error("Error al cargar jugadores");
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => { fetchPlayers(); }, []);

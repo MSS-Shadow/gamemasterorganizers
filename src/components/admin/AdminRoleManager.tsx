@@ -24,9 +24,11 @@ export default function AdminRoleManager() {
 
       if (error) throw error;
 
-      const { data: allRoles } = await supabase
+      const { data: allRoles, error: rolesError } = await supabase
         .from("user_roles")
         .select("user_id, role");
+
+      if (rolesError) throw rolesError;
 
       const roleMap: Record<string, string[]> = {};
       (allRoles || []).forEach((r: any) => {
@@ -41,7 +43,7 @@ export default function AdminRoleManager() {
 
       setUsers(processed);
     } catch (err: any) {
-      console.error(err);
+      console.error("Error fetching users:", err);
       toast.error("Error al cargar usuarios");
     } finally {
       setLoading(false);
@@ -66,7 +68,6 @@ export default function AdminRoleManager() {
         if (error) throw error;
       }
 
-      // Sync is_clan_leader flag on profiles
       if (role === "clan_leader") {
         await supabase.from("profiles").update({ is_clan_leader: !hasRole }).eq("user_id", userId);
       }
@@ -74,8 +75,8 @@ export default function AdminRoleManager() {
       toast.success(`Rol "${role}" ${hasRole ? "removido" : "asignado"}`);
       fetchUsers();
     } catch (err: any) {
-      console.error(err);
-      toast.error("Error al actualizar rol");
+      console.error("Error toggling role:", err);
+      toast.error(`Error al ${hasRole ? "remover" : "asignar"} rol: ${err.message || "desconocido"}`);
     }
   };
 

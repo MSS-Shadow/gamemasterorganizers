@@ -11,10 +11,17 @@ export default function AdminCreators() {
   const [loading, setLoading] = useState(true);
 
   const fetchRequests = async () => {
-    setLoading(true);
-    const { data } = await supabase.from("creator_requests").select("*").order("created_at", { ascending: false });
-    setRequests(data || []);
-    setLoading(false);
+    try {
+      setLoading(true);
+      const { data, error } = await supabase.from("creator_requests").select("*").order("created_at", { ascending: false });
+      if (error) throw error;
+      setRequests(data || []);
+    } catch (err: any) {
+      console.error("Error loading creator requests:", err);
+      toast.error("Error al cargar solicitudes");
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => { fetchRequests(); }, []);

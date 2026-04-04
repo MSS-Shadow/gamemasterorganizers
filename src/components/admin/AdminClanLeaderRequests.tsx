@@ -15,7 +15,7 @@ interface Request {
   clan_name: string;
   email: string;
   description: string | null;
-  proof_image_url: string | null;
+  proof_image_url?: string | null;
   status: string;
   created_at: string;
 }
@@ -57,7 +57,6 @@ export default function AdminClanLeaderRequests() {
         .update({
           status: action,
           reviewed_at: new Date().toISOString(),
-          reviewed_by: user.id,
         })
         .eq("id", req.id);
 
@@ -76,7 +75,6 @@ export default function AdminClanLeaderRequests() {
             name: req.clan_name,
             leader_user_id: req.user_id,
             leader_nickname: req.nickname,
-            description: req.description,
           });
 
           if (clanError) throw clanError;

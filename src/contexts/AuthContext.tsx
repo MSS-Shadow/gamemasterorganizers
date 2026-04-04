@@ -122,7 +122,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setRoles([]);
   };
 
-  const isAdmin = roles.includes("admin") || user?.email === "portadormato@gmail.com";
+  const isAdmin = roles.includes("admin");
 
   return (
     <AuthContext.Provider value={{
