@@ -35,7 +35,7 @@ export default function AdminVerification() {
     }
 
     toast.success(`Solicitud ${status === "approved" ? "aprobada" : "rechazada"}`);
-    fetch();
+    fetchData();
   };
 
   return (
