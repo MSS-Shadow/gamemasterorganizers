@@ -15,7 +15,7 @@ interface Request {
   clan_name: string;
   email: string;
   description: string | null;
-  proof_image_url: string | null;
+  proof_image_url?: string | null;
   status: string;
   created_at: string;
 }
