@@ -57,7 +57,6 @@ export default function AdminClanLeaderRequests() {
         .update({
           status: action,
           reviewed_at: new Date().toISOString(),
-          reviewed_by: user.id,
         })
         .eq("id", req.id);
 
