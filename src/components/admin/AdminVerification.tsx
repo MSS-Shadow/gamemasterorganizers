@@ -24,7 +24,7 @@ export default function AdminVerification() {
     }
   };
 
-  useEffect(() => { fetch(); }, []);
+  useEffect(() => { fetchData(); }, []);
 
   const handleAction = async (id: string, status: string, nickname: string) => {
     const { error } = await supabase.from("verification_requests").update({ status, reviewed_at: new Date().toISOString() }).eq("id", id);
