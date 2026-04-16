@@ -54,19 +54,12 @@ export default function AdminRoleManager() {
 
   const toggleRole = async (userId: string, role: string, hasRole: boolean) => {
     try {
-      if (hasRole) {
-        const { error } = await supabase
-          .from("user_roles")
-          .delete()
-          .eq("user_id", userId)
-          .eq("role", role as any);
-        if (error) throw error;
-      } else {
-        const { error } = await supabase
-          .from("user_roles")
-          .insert({ user_id: userId, role: role as any });
-        if (error) throw error;
-      }
+      const { error } = await supabase.rpc("admin_toggle_role", {
+        _target_user_id: userId,
+        _role: role as "admin" | "clan_leader" | "content_creator" | "player",
+        _add: !hasRole,
+      });
+      if (error) throw error;
 
       if (role === "clan_leader") {
         await supabase.from("profiles").update({ is_clan_leader: !hasRole }).eq("user_id", userId);
