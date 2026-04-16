@@ -84,7 +84,6 @@ export default function ClanLeaderRequest() {
         clan_name: form.clan_name.trim(),
         email: profile.email,
         description: form.description.trim() || null,
-        proof_image_url: proofImageUrl,
         status: "pending",
       });
 
