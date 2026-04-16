@@ -3,7 +3,7 @@ import { Link, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Home, Trophy, BarChart3, Users, User, Swords, CalendarDays,
-  Medal, Star, Megaphone, Shield, LogIn, Menu, X
+  Medal, Star, Megaphone, Shield, LogIn, Menu, X, Gamepad2
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -18,7 +18,7 @@ const navItems = [
   { label: "Resultados", path: "/results", icon: Medal },
   { label: "Salón de la Fama", path: "/hall-of-fame", icon: Star },
   { label: "Anuncios", path: "/announcements", icon: Megaphone },
-  { label: "Creadores", path: "/creators", icon: Star },        // ← Asegurado aquí
+  { label: "Creadores", path: "/creators", icon: Star },
 ];
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
@@ -34,53 +34,68 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const isActive = (path: string) => location.pathname === path;
 
   return (
-    <div className="flex min-h-screen bg-zinc-950">
+    <div className="flex min-h-screen bg-background">
       {/* Desktop Sidebar */}
-      <aside className="hidden lg:flex flex-col w-64 border-r border-zinc-800 bg-zinc-900 fixed h-screen z-30">
-        <div className="flex items-center gap-3 px-6 py-6 border-b border-zinc-800">
-          <div className="p-2 bg-yellow-400 rounded-xl">
-            <Trophy className="h-7 w-7 text-zinc-950" />
+      <aside className="hidden lg:flex flex-col w-[260px] border-r border-border/50 bg-sidebar fixed h-screen z-30">
+        {/* Logo */}
+        <div className="flex items-center gap-3 px-5 py-5 border-b border-border/50">
+          <div className="p-2 rounded-xl bg-gradient-to-br from-primary to-gaming-cyan">
+            <Gamepad2 className="h-6 w-6 text-white" />
           </div>
           <div>
-            <span className="font-bold text-2xl tracking-tighter text-white">Game Master</span>
-            <p className="text-[10px] text-zinc-500 -mt-1">BLOODSTRIKE</p>
+            <span className="font-bold text-xl font-display tracking-tight text-foreground">Game Master</span>
+            <p className="text-[10px] text-muted-foreground font-medium tracking-widest uppercase -mt-0.5">Organizers</p>
           </div>
         </div>
 
-        <nav className="flex-1 overflow-y-auto py-6 px-3 space-y-1">
-          {allNav.map((item) => (
-            <Link
-              key={item.path}
-              to={item.path}
-              className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 ${
-                isActive(item.path)
-                  ? "bg-yellow-400 text-zinc-950 shadow-md"
-                  : "text-zinc-400 hover:text-white hover:bg-zinc-800"
-              }`}
-            >
-              <item.icon className="h-5 w-5" />
-              {item.label}
-            </Link>
-          ))}
+        {/* Nav */}
+        <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-0.5">
+          {allNav.map((item) => {
+            const active = isActive(item.path);
+            return (
+              <Link
+                key={item.path}
+                to={item.path}
+                className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 relative group ${
+                  active
+                    ? "text-primary-foreground"
+                    : "text-sidebar-foreground hover:text-foreground hover:bg-secondary/60"
+                }`}
+              >
+                {active && (
+                  <motion.div
+                    layoutId="activeNav"
+                    className="absolute inset-0 rounded-xl bg-gradient-to-r from-primary to-primary/80"
+                    style={{ zIndex: -1 }}
+                    transition={{ type: "spring", bounce: 0.2, duration: 0.5 }}
+                  />
+                )}
+                <item.icon className="h-[18px] w-[18px] shrink-0" />
+                {item.label}
+              </Link>
+            );
+          })}
         </nav>
 
-        <div className="p-4 border-t border-zinc-800">
+        {/* User */}
+        <div className="p-3 border-t border-border/50">
           {user ? (
             <Link
               to="/profile"
-              className="flex items-center gap-3 px-4 py-3 rounded-xl bg-zinc-800 hover:bg-zinc-700 transition-colors"
+              className="flex items-center gap-3 px-3 py-3 rounded-xl bg-secondary/50 hover:bg-secondary transition-colors group"
             >
-              <div className="w-8 h-8 bg-zinc-700 rounded-full flex items-center justify-center">
-                <User className="h-4 w-4" />
+              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary/30 to-gaming-cyan/30 flex items-center justify-center border border-primary/20">
+                <User className="h-4 w-4 text-primary" />
               </div>
-              <div className="text-sm">
-                <p className="font-medium text-white">{profile?.nickname || "Mi Perfil"}</p>
+              <div className="min-w-0">
+                <p className="font-medium text-sm text-foreground truncate">{profile?.nickname || "Mi Perfil"}</p>
+                <p className="text-xs text-muted-foreground truncate">{user.email}</p>
               </div>
             </Link>
           ) : (
             <Link
               to="/auth"
-              className="flex items-center justify-center gap-2 bg-yellow-400 hover:bg-yellow-300 transition-colors text-zinc-950 font-semibold py-3 rounded-xl"
+              className="glow-button flex items-center justify-center gap-2 text-primary-foreground font-semibold py-3 rounded-xl w-full"
             >
               <LogIn className="h-4 w-4" />
               Iniciar Sesión
@@ -90,34 +105,31 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       </aside>
 
       {/* Mobile Header */}
-      <header className="lg:hidden fixed top-0 left-0 right-0 z-50 bg-zinc-900 border-b border-zinc-800">
-        <div className="flex items-center justify-between px-4 h-16">
+      <header className="lg:hidden fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border/50">
+        <div className="flex items-center justify-between px-4 h-14">
           <Link to="/" className="flex items-center gap-2">
-            <div className="p-1.5 bg-yellow-400 rounded-lg">
-              <Trophy className="h-6 w-6 text-zinc-950" />
+            <div className="p-1.5 rounded-lg bg-gradient-to-br from-primary to-gaming-cyan">
+              <Gamepad2 className="h-5 w-5 text-white" />
             </div>
-            <span className="font-bold text-xl tracking-tight text-white">Game Master</span>
+            <span className="font-bold text-lg font-display tracking-tight text-foreground">Game Master</span>
           </Link>
 
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
             {user ? (
-              <Link to="/profile" className="text-white p-1">
-                <User className="h-6 w-6" />
+              <Link to="/profile" className="text-foreground p-1.5 hover:text-primary transition-colors">
+                <User className="h-5 w-5" />
               </Link>
             ) : (
-              <Link 
-                to="/auth" 
-                className="text-yellow-400 font-medium text-sm"
-              >
-                Iniciar Sesión
+              <Link to="/auth" className="text-primary font-medium text-sm">
+                Entrar
               </Link>
             )}
 
             <button
               onClick={() => setMobileOpen(!mobileOpen)}
-              className="p-2 text-white hover:bg-zinc-800 rounded-lg"
+              className="p-2 text-foreground hover:bg-secondary rounded-xl transition-colors"
             >
-              {mobileOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+              {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
             </button>
           </div>
         </div>
@@ -127,22 +139,22 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       <AnimatePresence>
         {mobileOpen && (
           <motion.div
-            initial={{ opacity: 0, y: -20 }}
+            initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            transition={{ duration: 0.25 }}
-            className="fixed inset-0 z-40 bg-zinc-950 pt-16 lg:hidden overflow-y-auto"
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 z-40 bg-background/95 backdrop-blur-2xl pt-14 lg:hidden overflow-y-auto"
           >
-            <nav className="p-4 space-y-2">
+            <nav className="p-4 space-y-1">
               {allNav.map((item) => (
                 <Link
                   key={item.path}
                   to={item.path}
                   onClick={() => setMobileOpen(false)}
-                  className={`flex items-center gap-4 px-5 py-4 rounded-2xl text-lg font-medium transition-all ${
+                  className={`flex items-center gap-4 px-5 py-3.5 rounded-2xl text-base font-medium transition-all ${
                     isActive(item.path)
-                      ? "bg-yellow-400 text-zinc-950"
-                      : "text-zinc-300 hover:bg-zinc-800"
+                      ? "bg-primary text-primary-foreground"
+                      : "text-muted-foreground hover:text-foreground hover:bg-secondary"
                   }`}
                 >
                   <item.icon className="h-5 w-5" />
@@ -155,7 +167,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       </AnimatePresence>
 
       {/* Main Content */}
-      <main className="flex-1 lg:ml-64 pt-16 lg:pt-0 min-h-screen">
+      <main className="flex-1 lg:ml-[260px] pt-14 lg:pt-0 min-h-screen">
         <div className="p-4 md:p-6 lg:p-8 max-w-7xl mx-auto">
           {children}
         </div>
