@@ -56,7 +56,7 @@ export default function AdminRoleManager() {
     try {
       const { error } = await supabase.rpc("admin_toggle_role", {
         _target_user_id: userId,
-        _role: role,
+        _role: role as "admin" | "clan_leader" | "content_creator" | "player",
         _add: !hasRole,
       });
       if (error) throw error;
