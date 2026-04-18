@@ -1,12 +1,8 @@
 import { useState, useEffect } from "react";
-import { Users, Plus, Trophy, Star, UserCheck, Clock, ArrowRight } from "lucide-react";
+import { Users, Plus, Star, UserCheck, Clock, ArrowRight, Crown, Trophy } from "lucide-react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { toast } from "sonner";
 
 interface ClanInfo {
   id: string;
@@ -17,7 +13,7 @@ interface ClanInfo {
 }
 
 export default function TeamsPage() {
-  const { user, profile } = useAuth();
+  const { user } = useAuth();
   const [clans, setClans] = useState<ClanInfo[]>([]);
   const [pendingRequests, setPendingRequests] = useState<{ clan_name: string; count: number }[]>([]);
   const [loading, setLoading] = useState(true);
@@ -25,194 +21,165 @@ export default function TeamsPage() {
 
   useEffect(() => {
     const fetchData = async () => {
-      if (!user) {
-        setLoading(false);
-        return;
-      }
+      try {
+        if (user) {
+          const { data: profileData } = await supabase
+            .from("profiles").select("clan").eq("user_id", user.id).single();
+          if (profileData?.clan) setMyClan(profileData.clan);
 
-      // Obtener clan del usuario actual
-      const { data: profileData } = await supabase
-        .from("profiles")
-        .select("clan")
-        .eq("user_id", user.id)
-        .single();
-
-      if (profileData?.clan) setMyClan(profileData.clan);
-
-      // Cargar clanes
-      const [clansRes, membersRes, championsRes] = await Promise.all([
-        supabase.from("clans").select("*"),
-        supabase.from("clan_members").select("clan_id").eq("status", "member"),
-        supabase.from("tournament_champions").select("team_name"),
-      ]);
-
-      const memberCounts = new Map<string, number>();
-      membersRes.data?.forEach((m: any) => {
-        memberCounts.set(m.clan_id, (memberCounts.get(m.clan_id) || 0) + 1);
-      });
-
-      const winCounts = new Map<string, number>();
-      championsRes.data?.forEach((c: any) => {
-        winCounts.set(c.team_name, (winCounts.get(c.team_name) || 0) + 1);
-      });
-
-      const clanList: ClanInfo[] = (clansRes.data as any[] ?? []).map((c) => ({
-        id: c.id,
-        name: c.name,
-        leader_nickname: c.leader_nickname,
-        memberCount: (memberCounts.get(c.id) || 0) + 1,
-        wins: winCounts.get(c.name) || 0,
-      }));
-
-      // Ordenar: más victorias primero
-      clanList.sort((a, b) => b.wins - a.wins || b.memberCount - a.memberCount);
-      setClans(clanList);
-
-      // Solicitudes pendientes para el líder actual
-      if (profileData?.clan) {
-        const { data: requests } = await (supabase.from as any)("clan_join_requests")
-          .select("*")
-          .select("*")
-          .eq("clan_name", profileData.clan)
-          .eq("status", "pending");
-
-        if (requests && requests.length > 0) {
-          setPendingRequests([{ clan_name: profileData.clan, count: requests.length }]);
+          if (profileData?.clan) {
+            const { data: requests } = await supabase.from("clan_join_requests")
+              .select("*").eq("clan_name", profileData.clan).eq("status", "pending");
+            if (requests && requests.length > 0) {
+              setPendingRequests([{ clan_name: profileData.clan, count: requests.length }]);
+            }
+          }
         }
+
+        const [clansRes, membersRes, championsRes] = await Promise.all([
+          supabase.from("clans").select("*"),
+          supabase.from("clan_members").select("clan_id").eq("status", "member"),
+          supabase.from("tournament_champions").select("team_name"),
+        ]);
+
+        const memberCounts = new Map<string, number>();
+        membersRes.data?.forEach((m: any) => memberCounts.set(m.clan_id, (memberCounts.get(m.clan_id) || 0) + 1));
+        const winCounts = new Map<string, number>();
+        championsRes.data?.forEach((c: any) => winCounts.set(c.team_name, (winCounts.get(c.team_name) || 0) + 1));
+
+        const clanList: ClanInfo[] = (clansRes.data as any[] ?? []).map((c) => ({
+          id: c.id, name: c.name, leader_nickname: c.leader_nickname,
+          memberCount: (memberCounts.get(c.id) || 0) + 1,
+          wins: winCounts.get(c.name) || 0,
+        }));
+        clanList.sort((a, b) => b.wins - a.wins || b.memberCount - a.memberCount);
+        setClans(clanList);
+      } finally {
+        setLoading(false);
       }
-
-      setLoading(false);
     };
-
     fetchData();
   }, [user]);
 
-  if (loading) {
-    return <div className="text-center py-20 text-zinc-400">Cargando clanes...</div>;
-  }
+  if (loading) return <div className="text-center py-20 text-muted-foreground">Cargando clanes...</div>;
 
   const featuredClans = clans.slice(0, 3);
 
   return (
-    <div className="space-y-12">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
-        <div>
-          <h1 className="text-4xl font-bold tracking-tight text-white">Equipos / Clanes</h1>
-          <p className="text-zinc-400 mt-2">Únete a un clan o crea el tuyo para competir en BloodStrike</p>
-        </div>
-
-        {user && (
-          <Link 
-            to="/clan-leader-request" 
-            className="accent-button px-6 py-3 rounded-2xl flex items-center gap-2"
-          >
-            <Plus className="h-5 w-5" /> Solicitar ser Líder
-          </Link>
-        )}
-      </div>
-
-      {/* Notificación de solicitudes pendientes */}
-      {pendingRequests.length > 0 && (
-        <div className="bg-amber-500/10 border border-amber-500/30 rounded-3xl p-6 flex items-center gap-4">
-          <Clock className="h-8 w-8 text-amber-400" />
-          <div className="flex-1">
-            <p className="font-semibold text-white">Tienes {pendingRequests[0].count} solicitud(es) pendiente(s) para unirte a tu clan</p>
-            <p className="text-sm text-zinc-400">Revisa las solicitudes en la página de tu clan</p>
+    <div className="space-y-8">
+      {/* Hero */}
+      <section className="relative overflow-hidden rounded-3xl bg-mesh">
+        <div className="absolute top-0 right-1/4 w-80 h-80 bg-primary/20 rounded-full blur-[120px] pointer-events-none" />
+        <div className="relative px-6 py-10 md:py-14 flex flex-col md:flex-row md:items-end justify-between gap-4">
+          <div>
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 mb-4 rounded-full bg-primary/10 border border-primary/20 text-primary text-sm font-medium">
+              <Users className="h-4 w-4" /> Comunidad
+            </div>
+            <h1 className="text-4xl md:text-6xl font-black font-display gradient-text leading-[1.1] mb-2">Equipos / Clanes</h1>
+            <p className="text-muted-foreground text-lg">Únete a un clan o crea el tuyo para competir.</p>
           </div>
-          <Link 
-            to={`/teams/${encodeURIComponent(pendingRequests[0].clan_name)}`}
-            className="accent-button px-6 py-2.5 rounded-2xl whitespace-nowrap"
-          >
+          {user && (
+            <Link to="/clan-leader-request" className="glow-button px-6 py-3 rounded-xl text-primary-foreground font-semibold inline-flex items-center gap-2 self-start">
+              <Plus className="h-4 w-4" /> Solicitar ser Líder
+            </Link>
+          )}
+        </div>
+      </section>
+
+      {/* Pending requests notice */}
+      {pendingRequests.length > 0 && (
+        <div className="glass-card p-5 flex flex-col sm:flex-row items-start sm:items-center gap-4 border-gaming-cyan/30">
+          <div className="p-3 rounded-xl bg-gaming-cyan/15">
+            <Clock className="h-6 w-6 text-gaming-cyan" />
+          </div>
+          <div className="flex-1">
+            <p className="font-semibold text-foreground">Tienes {pendingRequests[0].count} solicitud(es) pendiente(s) en tu clan</p>
+            <p className="text-sm text-muted-foreground">Revisa las solicitudes en la página de tu clan</p>
+          </div>
+          <Link to={`/teams/${encodeURIComponent(pendingRequests[0].clan_name)}`}
+            className="glow-button px-5 py-2.5 rounded-xl text-primary-foreground text-sm font-semibold whitespace-nowrap">
             Ver solicitudes
           </Link>
         </div>
       )}
 
-      {/* Clanes Destacados */}
+      {/* Featured clans */}
       {featuredClans.length > 0 && (
         <section>
-          <h2 className="text-2xl font-bold text-white mb-6 flex items-center gap-3">
+          <h2 className="text-2xl font-bold font-display text-foreground mb-5 flex items-center gap-2">
             <Star className="h-6 w-6 text-yellow-400" /> Clanes Destacados
           </h2>
-          <div className="grid md:grid-cols-3 gap-6">
+          <div className="grid md:grid-cols-3 gap-5">
             {featuredClans.map((c, i) => (
-              <Card key={c.id} className={myClan === c.name ? "border-yellow-400/50" : ""}>
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <CardTitle>{c.name}</CardTitle>
-                    {myClan === c.name && <Badge className="bg-green-500/20 text-green-400">Tu clan</Badge>}
+              <Link key={c.id} to={`/teams/${encodeURIComponent(c.name)}`}
+                className={`glass-card-hover p-6 group ${myClan === c.name ? "border-primary/50" : ""}`}>
+                <div className="flex items-center justify-between mb-4">
+                  <div className={`p-3 rounded-xl bg-gradient-to-br ${
+                    i === 0 ? "from-yellow-400 to-amber-500" :
+                    i === 1 ? "from-gaming-cyan to-primary" :
+                    "from-gaming-pink to-primary"
+                  } opacity-90 group-hover:opacity-100 transition-opacity`}>
+                    <Crown className="h-6 w-6 text-white" />
                   </div>
-                  <CardDescription>Líder: {c.leader_nickname}</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex justify-between text-sm">
-                    <div>
-                      <p className="text-3xl font-bold text-white">{c.memberCount}</p>
-                      <p className="text-xs text-zinc-500">Miembros</p>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-3xl font-bold text-yellow-400">{c.wins}</p>
-                      <p className="text-xs text-zinc-500">Victorias</p>
-                    </div>
+                  {myClan === c.name && (
+                    <span className="px-2.5 py-1 rounded-full bg-gaming-cyan/15 text-gaming-cyan text-[10px] font-semibold">TU CLAN</span>
+                  )}
+                </div>
+                <h3 className="text-xl font-bold font-display text-foreground mb-1">{c.name}</h3>
+                <p className="text-xs text-muted-foreground mb-4">Líder: {c.leader_nickname}</p>
+                <div className="flex justify-between pt-4 border-t border-border/40">
+                  <div>
+                    <p className="text-2xl font-black font-display text-foreground">{c.memberCount}</p>
+                    <p className="text-xs text-muted-foreground">Miembros</p>
                   </div>
-                </CardContent>
-                <CardFooter>
-                  <Link to={`/teams/${encodeURIComponent(c.name)}`} className="accent-button w-full text-center py-3 rounded-2xl">
-                    Ver Clan
-                  </Link>
-                </CardFooter>
-              </Card>
+                  <div className="text-right">
+                    <p className="text-2xl font-black font-display text-primary stat-glow">{c.wins}</p>
+                    <p className="text-xs text-muted-foreground">Victorias</p>
+                  </div>
+                </div>
+              </Link>
             ))}
           </div>
         </section>
       )}
 
-      {/* Todos los Clanes */}
+      {/* All clans */}
       <section>
-        <h2 className="text-2xl font-bold text-white mb-6">Todos los Clanes ({clans.length})</h2>
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {clans.map((c) => (
-            <Card key={c.id} className={myClan === c.name ? "ring-2 ring-yellow-400/30" : ""}>
-              <CardHeader>
-                <div className="flex justify-between items-start">
-                  <CardTitle>{c.name}</CardTitle>
-                  {myClan === c.name && <UserCheck className="h-5 w-5 text-green-400" />}
+        <h2 className="text-2xl font-bold font-display text-foreground mb-5">
+          Todos los Clanes <span className="text-muted-foreground font-normal text-lg">({clans.length})</span>
+        </h2>
+        {clans.length === 0 ? (
+          <div className="glass-card p-16 text-center">
+            <Users className="h-12 w-12 mx-auto text-muted-foreground/30 mb-4" />
+            <p className="text-foreground font-semibold mb-1">Aún no hay clanes registrados</p>
+            <p className="text-muted-foreground text-sm">Sé el primero en solicitar ser líder</p>
+          </div>
+        ) : (
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {clans.map((c) => (
+              <Link key={c.id} to={`/teams/${encodeURIComponent(c.name)}`}
+                className={`glass-card-hover p-5 group ${myClan === c.name ? "ring-2 ring-primary/30" : ""}`}>
+                <div className="flex justify-between items-start mb-2">
+                  <h3 className="font-bold text-foreground">{c.name}</h3>
+                  {myClan === c.name && <UserCheck className="h-4 w-4 text-gaming-cyan" />}
                 </div>
-                <CardDescription>Líder: {c.leader_nickname}</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="flex justify-between">
-                  <div className="flex items-center gap-2 text-zinc-400">
-                    <Users className="h-4 w-4" />
-                    {c.memberCount} miembros
-                  </div>
-                  <div className="text-right">
-                    <span className="font-semibold text-yellow-400">{c.wins}</span>
-                    <span className="text-xs text-zinc-500"> victorias</span>
-                  </div>
+                <p className="text-xs text-muted-foreground mb-4">Líder: {c.leader_nickname}</p>
+                <div className="flex justify-between text-sm">
+                  <span className="flex items-center gap-1.5 text-muted-foreground">
+                    <Users className="h-4 w-4" /> {c.memberCount}
+                  </span>
+                  <span className="flex items-center gap-1.5 font-semibold text-primary">
+                    <Trophy className="h-4 w-4" /> {c.wins}
+                  </span>
                 </div>
-              </CardContent>
-              <CardFooter>
-                <Link 
-                  to={`/teams/${encodeURIComponent(c.name)}`}
-                  className="w-full text-center py-3 border border-zinc-700 hover:bg-zinc-800 rounded-2xl transition-colors flex items-center justify-center gap-2"
-                >
-                  Ver Clan <ArrowRight className="h-4 w-4" />
-                </Link>
-              </CardFooter>
-            </Card>
-          ))}
-        </div>
+                <div className="mt-4 pt-3 border-t border-border/40 text-xs text-muted-foreground group-hover:text-primary transition-colors flex items-center justify-end gap-1">
+                  Ver clan <ArrowRight className="h-3 w-3" />
+                </div>
+              </Link>
+            ))}
+          </div>
+        )}
       </section>
-
-      {clans.length === 0 && (
-        <div className="text-center py-20 bg-zinc-900 border border-zinc-800 rounded-3xl">
-          <Users className="h-16 w-16 mx-auto text-zinc-600 mb-4" />
-          <p className="text-xl text-white mb-2">Aún no hay clanes registrados</p>
-          <p className="text-zinc-500">Sé el primero en solicitar ser líder</p>
-        </div>
-      )}
     </div>
   );
 }
