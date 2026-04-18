@@ -32,17 +32,19 @@ export default function ResetPassword() {
 
       if (error) {
         toast.error(error.message);
-      } else {
-        toast.success("¡Contraseña actualizada correctamente!");
-
-        // Esperar un poco para que el toast se vea
-        setTimeout(() => {
-          navigate("/auth", { replace: true });
-        }, 1500);
+        setLoading(false);
+        return;
       }
+
+      toast.success("¡Contraseña actualizada correctamente!");
+
+      // Cerrar sesión de recovery para forzar login limpio
+      await supabase.auth.signOut();
+
+      setLoading(false);
+      navigate("/auth", { replace: true });
     } catch (err: any) {
       toast.error("Error inesperado: " + (err.message || "Inténtalo de nuevo"));
-    } finally {
       setLoading(false);
     }
   };
