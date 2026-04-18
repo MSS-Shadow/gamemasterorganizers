@@ -63,6 +63,8 @@ const App = () => (
               <Route path="/players" element={<Players />} />
               <Route path="/player/:nickname" element={<PlayerProfile />} />
               <Route path="/scrims" element={<Scrims />} />
+              <Route path="/clanes" element={<Teams />} />
+              <Route path="/ranking" element={<Rankings />} />
               <Route path="/upcoming" element={<Upcoming />} />
               <Route path="/results" element={<Results />} />
               <Route path="/hall-of-fame" element={<HallOfFame />} />
