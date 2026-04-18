@@ -35,10 +35,10 @@ export default function HomePage() {
   }, []);
 
   const statItems = [
-    { label: "Jugadores", value: stats.players, icon: Users, color: "from-primary to-gaming-pink" },
-    { label: "Clanes", value: stats.teams, icon: Crown, color: "from-gaming-cyan to-primary" },
-    { label: "Torneos", value: stats.tournaments, icon: Trophy, color: "from-gaming-pink to-primary" },
-    { label: "Scrims", value: stats.scrims, icon: Swords, color: "from-primary to-gaming-cyan" },
+    { label: "Jugadores", value: stats.players, icon: Users, color: "from-primary to-gaming-pink", path: "/players" },
+    { label: "Clanes", value: stats.teams, icon: Crown, color: "from-gaming-cyan to-primary", path: "/teams" },
+    { label: "Torneos", value: stats.tournaments, icon: Trophy, color: "from-gaming-pink to-primary", path: "/tournaments" },
+    { label: "Scrims", value: stats.scrims, icon: Swords, color: "from-primary to-gaming-cyan", path: "/scrims" },
   ];
 
   const quickLinks = [
@@ -103,9 +103,10 @@ export default function HomePage() {
       {/* Stats */}
       <section className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {statItems.map((stat, i) => (
-          <div
+          <Link
             key={i}
-            className="glass-card-hover p-6 text-center group"
+            to={stat.path}
+            className="glass-card-hover p-6 text-center group cursor-pointer"
             style={{ animationDelay: `${i * 100}ms` }}
           >
             <div className={`w-12 h-12 mx-auto mb-3 rounded-xl bg-gradient-to-br ${stat.color} flex items-center justify-center opacity-80 group-hover:opacity-100 transition-opacity`}>
@@ -113,7 +114,7 @@ export default function HomePage() {
             </div>
             <p className="text-4xl font-black font-display stat-glow text-foreground">{stat.value}</p>
             <p className="text-muted-foreground text-sm mt-1">{stat.label}</p>
-          </div>
+          </Link>
         ))}
       </section>
 
