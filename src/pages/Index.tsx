@@ -176,6 +176,57 @@ export default function HomePage() {
           </div>
         )}
       </section>
+
+      {/* SEO indexable content */}
+      <section className="glass-card p-8 space-y-6">
+        <h2 className="text-2xl font-bold font-display gradient-text">
+          La plataforma competitiva #1 de Blood Strike LATAM
+        </h2>
+        <div className="grid md:grid-cols-3 gap-6 text-sm text-muted-foreground leading-relaxed">
+          <article>
+            <h3 className="text-foreground font-semibold mb-2">Scrims de Blood Strike</h3>
+            <p>
+              Plataforma de <strong>scrims Blood Strike</strong> donde practicas con tu equipo en lobbies organizados,
+              con horarios fijos y modos Solo, Dúo, Trío y Squad. <Link to="/scrims" className="text-primary hover:underline">Ver scrims disponibles</Link>.
+            </p>
+          </article>
+          <article>
+            <h3 className="text-foreground font-semibold mb-2">Torneos automáticos</h3>
+            <p>
+              Participa en <strong>torneos Blood Strike</strong> organizados automáticamente con brackets de 8, 16 y 32 equipos,
+              sistema de puntos configurable y waitlist. <Link to="/tournaments" className="text-primary hover:underline">Inscribirme a un torneo</Link>.
+            </p>
+          </article>
+          <article>
+            <h3 className="text-foreground font-semibold mb-2">Jugadores verificados</h3>
+            <p>
+              Todos los participantes pasan por un sistema de <strong>jugadores verificados Blood Strike</strong> con validación
+              de Player ID para garantizar fair play y combatir el smurfing. <Link to="/players" className="text-primary hover:underline">Ver jugadores</Link>.
+            </p>
+          </article>
+          <article>
+            <h3 className="text-foreground font-semibold mb-2">Clanes Blood Strike</h3>
+            <p>
+              Crea o únete a <strong>clanes Blood Strike</strong> con perfiles públicos, sistema de solicitudes
+              y requisitos por torneo. <Link to="/teams" className="text-primary hover:underline">Explorar clanes</Link>.
+            </p>
+          </article>
+          <article>
+            <h3 className="text-foreground font-semibold mb-2">Ranking competitivo</h3>
+            <p>
+              Sigue el <strong>ranking Blood Strike</strong> LATAM basado en victorias reales en torneos oficiales.
+              <Link to="/rankings" className="text-primary hover:underline"> Ver tabla de posiciones</Link>.
+            </p>
+          </article>
+          <article>
+            <h3 className="text-foreground font-semibold mb-2">Comunidad LATAM</h3>
+            <p>
+              Game Master Organizers conecta a la escena competitiva de Blood Strike en LATAM y Brasil con
+              moderación activa, anti-cheat y soporte 24/7.
+            </p>
+          </article>
+        </div>
+      </section>
     </div>
   );
 }
