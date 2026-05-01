@@ -7,6 +7,34 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 
+// Map each nav path to its lazy import factory so we can prefetch on hover/focus.
+// Using the same import paths as src/App.tsx ensures Vite reuses the same chunk.
+const routePrefetch: Record<string, () => Promise<unknown>> = {
+  "/tournaments": () => import("@/pages/Tournaments"),
+  "/rankings": () => import("@/pages/Rankings"),
+  "/teams": () => import("@/pages/Teams"),
+  "/players": () => import("@/pages/Players"),
+  "/scrims": () => import("@/pages/Scrims"),
+  "/upcoming": () => import("@/pages/Upcoming"),
+  "/results": () => import("@/pages/Results"),
+  "/hall-of-fame": () => import("@/pages/HallOfFame"),
+  "/announcements": () => import("@/pages/Announcements"),
+  "/creators": () => import("@/pages/Creators"),
+  "/admin": () => import("@/pages/Admin"),
+  "/profile": () => import("@/pages/Profile"),
+  "/auth": () => import("@/pages/Auth"),
+};
+
+const prefetched = new Set<string>();
+const prefetchRoute = (path: string) => {
+  if (prefetched.has(path)) return;
+  const loader = routePrefetch[path];
+  if (!loader) return;
+  prefetched.add(path);
+  // Fire and forget; ignore errors (will retry on real navigation).
+  loader().catch(() => prefetched.delete(path));
+};
+
 const navItems = [
   { label: "Inicio", path: "/", icon: Home },
   { label: "Torneos", path: "/tournaments", icon: Trophy },
@@ -56,6 +84,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
               <Link
                 key={item.path}
                 to={item.path}
+                onMouseEnter={() => prefetchRoute(item.path)}
+                onFocus={() => prefetchRoute(item.path)}
+                onTouchStart={() => prefetchRoute(item.path)}
                 className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 relative group ${
                   active
                     ? "text-primary-foreground"
@@ -82,6 +113,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           {user ? (
             <Link
               to="/profile"
+              onMouseEnter={() => prefetchRoute("/profile")}
+              onFocus={() => prefetchRoute("/profile")}
               className="flex items-center gap-3 px-3 py-3 rounded-xl bg-secondary/50 hover:bg-secondary transition-colors group"
             >
               <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary/30 to-gaming-cyan/30 flex items-center justify-center border border-primary/20">
@@ -95,6 +128,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           ) : (
             <Link
               to="/auth"
+              onMouseEnter={() => prefetchRoute("/auth")}
+              onFocus={() => prefetchRoute("/auth")}
               className="glow-button flex items-center justify-center gap-2 text-primary-foreground font-semibold py-3 rounded-xl w-full"
             >
               <LogIn className="h-4 w-4" />
@@ -116,11 +151,21 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
           <div className="flex items-center gap-3">
             {user ? (
-              <Link to="/profile" className="text-foreground p-1.5 hover:text-primary transition-colors">
+              <Link
+                to="/profile"
+                onMouseEnter={() => prefetchRoute("/profile")}
+                onFocus={() => prefetchRoute("/profile")}
+                className="text-foreground p-1.5 hover:text-primary transition-colors"
+              >
                 <User className="h-5 w-5" />
               </Link>
             ) : (
-              <Link to="/auth" className="text-primary font-medium text-sm">
+              <Link
+                to="/auth"
+                onMouseEnter={() => prefetchRoute("/auth")}
+                onFocus={() => prefetchRoute("/auth")}
+                className="text-primary font-medium text-sm"
+              >
                 Entrar
               </Link>
             )}
@@ -151,6 +196,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                   key={item.path}
                   to={item.path}
                   onClick={() => setMobileOpen(false)}
+                  onMouseEnter={() => prefetchRoute(item.path)}
+                  onFocus={() => prefetchRoute(item.path)}
+                  onTouchStart={() => prefetchRoute(item.path)}
                   className={`flex items-center gap-4 px-5 py-3.5 rounded-2xl text-base font-medium transition-all ${
                     isActive(item.path)
                       ? "bg-primary text-primary-foreground"
