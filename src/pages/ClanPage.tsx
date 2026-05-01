@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
-import { Users, ArrowLeft, CheckCircle, XCircle, UserMinus, Trophy, ShieldCheck, RefreshCw } from "lucide-react";
+import { Users, ArrowLeft, UserMinus, Trophy, ShieldCheck, RefreshCw, Crown, Megaphone, Medal } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -39,6 +39,8 @@ export default function ClanPage() {
   const [members, setMembers] = useState<Member[]>([]);
   const [joinRequests, setJoinRequests] = useState<JoinRequest[]>([]);
   const [loading, setLoading] = useState(true);
+  const [championships, setChampionships] = useState<any[]>([]);
+  const [tournamentsPlayed, setTournamentsPlayed] = useState(0);
 
   const isLeader = user?.id === clan?.leader_user_id;
 
@@ -71,6 +73,20 @@ export default function ClanPage() {
         .order("created_at", { ascending: false });
 
       setJoinRequests(requestsData || []);
+
+      const [champsRes, tourCountRes] = await Promise.all([
+        supabase
+          .from("tournament_champions")
+          .select("*")
+          .eq("team_name", decoded)
+          .order("date", { ascending: false }),
+        supabase
+          .from("tournament_registrations")
+          .select("tournament_id", { count: "exact", head: true })
+          .eq("clan", decoded),
+      ]);
+      setChampionships(champsRes.data ?? []);
+      setTournamentsPlayed(tourCountRes.count ?? 0);
     }
 
     setLoading(false);
@@ -141,6 +157,9 @@ export default function ClanPage() {
   );
 
   const approvedMembers = members.filter((m) => m.status === "member");
+  const totalMembers = approvedMembers.length + 1;
+  const wins = championships.length;
+  const winrate = tournamentsPlayed > 0 ? Math.round((wins / tournamentsPlayed) * 100) : 0;
 
   return (
     <div className="max-w-4xl mx-auto space-y-10">
@@ -148,49 +167,80 @@ export default function ClanPage() {
         <ArrowLeft className="h-4 w-4" /> Volver a Equipos
       </Link>
 
-      <Card>
-        <CardHeader>
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div className="flex items-center gap-4">
-              <div className="p-4 bg-primary/10 rounded-2xl">
-                <Users className="h-10 w-10 text-primary" />
-              </div>
-              <div>
-                <CardTitle className="text-4xl">{clan.name}</CardTitle>
-                <p className="text-muted-foreground">Líder: <span className="text-foreground">{clan.leader_nickname}</span></p>
+      {/* Hero banner */}
+      <div className="relative overflow-hidden rounded-3xl glass-card animate-fade-up">
+        <div className="profile-banner h-36 md:h-44 relative">
+          <div className="absolute inset-0 bg-gradient-to-t from-card via-card/40 to-transparent" />
+        </div>
+        <div className="relative px-6 pb-6 -mt-14 flex flex-col md:flex-row md:items-end justify-between gap-4">
+          <div className="flex items-end gap-4">
+            <div className="w-24 h-24 rounded-3xl bg-gradient-to-br from-primary to-gaming-cyan p-1 shadow-2xl shrink-0">
+              <div className="w-full h-full rounded-[1.3rem] bg-card flex items-center justify-center">
+                <Crown className="h-10 w-10 text-primary" />
               </div>
             </div>
-            <div className="text-right">
-              <p className="text-sm text-muted-foreground">Creado el</p>
-              <p className="font-medium">{new Date(clan.created_at).toLocaleDateString("es")}</p>
+            <div>
+              <h1 className="text-3xl md:text-4xl font-black font-display text-foreground">{clan.name}</h1>
+              <p className="text-sm text-muted-foreground mt-1">
+                Líder: <Link to={`/player/${encodeURIComponent(clan.leader_nickname)}`} className="text-foreground hover:text-primary transition-colors">{clan.leader_nickname}</Link>
+                {" · "}desde {new Date(clan.created_at).toLocaleDateString("es", { month: "short", year: "numeric" })}
+              </p>
             </div>
           </div>
-        </CardHeader>
-      </Card>
-
-      <div className="grid md:grid-cols-3 gap-6">
-        <Card className="md:col-span-1">
-          <CardContent className="pt-6">
-            <div className="text-center">
-              <p className="text-5xl font-bold text-foreground">{approvedMembers.length + 1}</p>
-              <p className="text-muted-foreground text-sm mt-1">Miembros totales</p>
-            </div>
-          </CardContent>
-        </Card>
-
-        {isLeader && (
-          <Card className="md:col-span-2">
-            <CardHeader>
-              <CardTitle>Gestión de Clan</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Link to="/clan-leader-request" className="text-primary hover:underline">
-                Editar información del clan →
-              </Link>
-            </CardContent>
-          </Card>
-        )}
+          {isLeader && (
+            <Link to="/clan-leader-request" className="text-sm text-primary hover:underline whitespace-nowrap">
+              Editar información →
+            </Link>
+          )}
+        </div>
       </div>
+
+      {/* Stats */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="glass-card-hover p-5 text-center">
+          <Users className="h-5 w-5 text-primary mx-auto mb-1" />
+          <p className="text-3xl font-black font-display stat-glow text-foreground tabular-nums">{totalMembers}</p>
+          <p className="text-xs text-muted-foreground mt-0.5">Miembros</p>
+        </div>
+        <div className="glass-card-hover p-5 text-center">
+          <Trophy className="h-5 w-5 text-gaming-pink mx-auto mb-1" />
+          <p className="text-3xl font-black font-display text-foreground tabular-nums">{wins}</p>
+          <p className="text-xs text-muted-foreground mt-0.5">Campeonatos</p>
+        </div>
+        <div className="glass-card-hover p-5 text-center">
+          <Medal className="h-5 w-5 text-accent mx-auto mb-1" />
+          <p className="text-3xl font-black font-display text-foreground tabular-nums">{tournamentsPlayed}</p>
+          <p className="text-xs text-muted-foreground mt-0.5">Torneos</p>
+        </div>
+        <div className="glass-card-hover p-5 text-center">
+          <Trophy className="h-5 w-5 text-primary mx-auto mb-1" />
+          <p className="text-3xl font-black font-display text-foreground tabular-nums">{winrate}%</p>
+          <p className="text-xs text-muted-foreground mt-0.5">Winrate</p>
+        </div>
+      </div>
+
+      {/* Recruitment banner */}
+      {totalMembers < 8 && (
+        <div className="relative overflow-hidden rounded-2xl glass-card p-5 md:p-6 border border-primary/30">
+          <div className="absolute -top-12 -right-12 w-48 h-48 bg-primary/20 rounded-full blur-3xl pointer-events-none" />
+          <div className="relative flex flex-col md:flex-row md:items-center gap-4 justify-between">
+            <div className="flex items-start gap-3">
+              <div className="p-2.5 rounded-xl bg-primary/15 text-primary shrink-0">
+                <Megaphone className="h-5 w-5" />
+              </div>
+              <div>
+                <h3 className="font-bold text-foreground text-lg">Este clan recluta jugadores</h3>
+                <p className="text-sm text-muted-foreground mt-0.5">
+                  Únete a <span className="text-foreground font-semibold">{clan.name}</span> y compite en torneos por equipos.
+                </p>
+              </div>
+            </div>
+            <Link to="/teams" className="glow-button px-5 py-2.5 rounded-xl text-primary-foreground font-semibold text-sm whitespace-nowrap">
+              Solicitar unirse
+            </Link>
+          </div>
+        </div>
+      )}
 
       <div className="grid lg:grid-cols-2 gap-8">
         <Card>
@@ -268,6 +318,29 @@ export default function ClanPage() {
           </Card>
         )}
       </div>
+
+      {/* Championship history */}
+      {championships.length > 0 && (
+        <div className="glass-card p-6">
+          <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground mb-4 flex items-center gap-2">
+            <Trophy className="h-4 w-4 text-gaming-pink" /> Campeonatos ganados
+          </h3>
+          <div className="space-y-2">
+            {championships.map((c: any) => (
+              <div key={c.id} className="flex items-center justify-between p-3 rounded-xl bg-secondary/40 hover:bg-secondary/70 transition-colors text-sm">
+                <div className="flex items-center gap-3">
+                  <Trophy className="h-4 w-4 text-gaming-pink" />
+                  <div>
+                    <p className="font-medium text-foreground">{c.tournament_name}</p>
+                    <p className="text-xs text-muted-foreground">{c.mode} · {new Date(c.date).toLocaleDateString("es", { day: "2-digit", month: "short", year: "numeric" })}</p>
+                  </div>
+                </div>
+                {c.prize && <span className="text-xs font-semibold text-accent">{c.prize}</span>}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
