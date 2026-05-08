@@ -29,7 +29,6 @@ export default function ForgotPassword() {
     } finally {
       setLoading(false);
     }
-    }
   };
 
   return (
