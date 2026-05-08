@@ -64,23 +64,28 @@ export default function TournamentRegisterDialog({ open, onClose, tournament }: 
       return;
     }
     setLoading(true);
-    const { error } = await supabase.from("tournament_registrations").insert({
-      tournament_id: tournament.id,
-      user_id: user.id,
-      nickname: profile.nickname,
-      player_id: profile.player_id,
-      platform: profile.platform,
-      clan: profile.clan,
-      tournament_team_name: needsTeam ? teamName.trim() : profile.nickname,
-    });
-    setLoading(false);
-    if (error) {
-      if (error.code === "23505") toast.error("Ya estás inscrito en este torneo");
-      else toast.error(error.message);
-      return;
+    try {
+      const { error } = await supabase.from("tournament_registrations").insert({
+        tournament_id: tournament.id,
+        user_id: user.id,
+        nickname: profile.nickname,
+        player_id: profile.player_id,
+        platform: profile.platform,
+        clan: profile.clan,
+        tournament_team_name: needsTeam ? teamName.trim() : profile.nickname,
+      });
+      if (error) {
+        if (error.code === "23505") toast.error("Ya estás inscrito en este torneo");
+        else toast.error(error.message);
+        return;
+      }
+      toast.success("¡Inscripción exitosa!");
+      onClose();
+    } catch (e: any) {
+      toast.error(e?.message || "Error inesperado");
+    } finally {
+      setLoading(false);
     }
-    toast.success("¡Inscripción exitosa!");
-    onClose();
   };
 
   return (
