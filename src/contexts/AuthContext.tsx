@@ -102,7 +102,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     let initialized = false;
     const safetyTimer = window.setTimeout(() => {
       if (!initialized) {
-        initialized = true;
         setLoading(false);
       }
     }, 15000);
