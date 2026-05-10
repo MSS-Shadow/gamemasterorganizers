@@ -30,6 +30,16 @@ const withTimeout = async <T,>(promise: PromiseLike<T>, ms = 18000): Promise<T> 
   }
 };
 
+const getDeleteErrorMessage = async (error: any) => {
+  const fallback = error?.message || "Error al eliminar";
+  try {
+    const payload = await error?.context?.json?.();
+    return payload?.error || fallback;
+  } catch {
+    return fallback;
+  }
+};
+
 export default function AdminPlayers() {
   const [players, setPlayers] = useState<any[]>([]);
   const [search, setSearch] = useState("");
@@ -76,7 +86,7 @@ export default function AdminPlayers() {
           body: { target_user_id: deleteTarget.user_id },
         })
       );
-      if (error) throw error;
+      if (error) throw new Error(await getDeleteErrorMessage(error));
       if ((data as any)?.error) throw new Error((data as any).error);
       toast.success("Cuenta eliminada");
       setDeleteTarget(null);
