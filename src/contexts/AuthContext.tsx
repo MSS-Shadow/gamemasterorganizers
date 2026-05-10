@@ -2,7 +2,7 @@ import { createContext, useContext, useEffect, useState, type ReactNode } from "
 import { supabase } from "@/integrations/supabase/client";
 import type { User, Session } from "@supabase/supabase-js";
 
-const withTimeout = async <T,>(promise: Promise<T>, ms = 12000): Promise<T> => {
+const withTimeout = async <T,>(promise: PromiseLike<T>, ms = 12000): Promise<T> => {
   let timeoutId: ReturnType<typeof setTimeout>;
   const timeout = new Promise<never>((_, reject) => {
     timeoutId = setTimeout(() => reject(new Error("Tiempo de espera agotado")), ms);
