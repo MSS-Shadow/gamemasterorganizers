@@ -68,11 +68,12 @@ export default function AdminRoleManager() {
     const key = `${userId}:${role}`;
     setUpdatingKey(key);
     try {
-      const { error } = await withTimeout((supabase.rpc as any)("admin_toggle_role", {
+      const result = await withTimeout((supabase.rpc as any)("admin_toggle_role", {
         _target_user_id: userId,
         _role: role,
         _add: !hasRole,
       }));
+      const error = (result as any)?.error;
       if (error) throw error;
 
       if (role === "clan_leader") {
