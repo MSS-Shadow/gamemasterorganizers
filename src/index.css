@@ -209,6 +209,30 @@
     animation: fade-up 0.5s ease-out both;
   }
 
+  /* Soft pulse for spotlight cards */
+  @keyframes pulse-soft {
+    0%, 100% { box-shadow: 0 0 0 0 hsl(110 65% 48% / 0.35); }
+    50%      { box-shadow: 0 0 0 8px hsl(110 65% 48% / 0); }
+  }
+  .animate-pulse-soft {
+    animation: pulse-soft 2.4s ease-in-out infinite;
+  }
+
+  /* Subtle tactical grid texture layered on the body */
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.12;
+    background-image:
+      linear-gradient(hsl(110 65% 48% / 0.6) 1px, transparent 1px),
+      linear-gradient(90deg, hsl(110 65% 48% / 0.6) 1px, transparent 1px);
+    background-size: 48px 48px;
+    mask-image: radial-gradient(circle at center, black 40%, transparent 80%);
+  }
+
   /* Scrollbar */
   ::-webkit-scrollbar {
     width: 6px;
