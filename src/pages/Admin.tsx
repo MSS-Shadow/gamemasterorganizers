@@ -25,6 +25,7 @@ import AdminModerationLog from "@/components/admin/AdminModerationLog";
 import AdminBackup from "@/components/admin/AdminBackup";
 import AdminSiteConfig from "@/components/admin/AdminSiteConfig";
 import AdminPushSender from "@/components/admin/AdminPushSender";
+import AdminSiteContent from "@/components/admin/AdminSiteContent";
 
 export default function AdminPage() {
   const { isAdmin, loading } = useAuth();
@@ -101,6 +102,7 @@ export default function AdminPage() {
             <TabsTrigger value="backup">💾 Respaldo</TabsTrigger>
             <TabsTrigger value="site-config">⚙️ Config</TabsTrigger>
             <TabsTrigger value="push">🔔 Push</TabsTrigger>
+            <TabsTrigger value="content">📝 Contenido</TabsTrigger>
           </TabsList>
         </div>
 
@@ -123,6 +125,7 @@ export default function AdminPage() {
           <TabsContent value="backup"><AdminBackup /></TabsContent>
           <TabsContent value="site-config"><AdminSiteConfig /></TabsContent>
           <TabsContent value="push"><AdminPushSender /></TabsContent>
+          <TabsContent value="content"><AdminSiteContent /></TabsContent>
         </div>
       </Tabs>
     </div>
