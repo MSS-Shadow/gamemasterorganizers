@@ -444,6 +444,62 @@ export default function HomePage() {
         )}
       </section>
 
+      {/* Cómo funciona */}
+      {howEnabled && (
+        <section>
+          <h2 className="text-2xl font-bold font-display text-foreground mb-5 flex items-center gap-2">
+            <Sparkles className="h-6 w-6 text-primary" /> Cómo funciona
+          </h2>
+          <div className="grid md:grid-cols-3 gap-4">
+            {howSteps.map((s, i) => (
+              <div
+                key={i}
+                className="glass-card-hover p-6 animate-fade-up"
+                style={{ animationDelay: `${i * 120}ms` }}
+              >
+                <div className="w-12 h-12 rounded-xl bg-primary/15 text-primary flex items-center justify-center mb-3">
+                  <s.icon className="h-6 w-6" />
+                </div>
+                <h3 className="font-semibold text-foreground text-lg">{s.title}</h3>
+                <p className="text-sm text-muted-foreground mt-1">{s.desc}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* Hall of Fame */}
+      {champions.length > 0 && (
+        <section>
+          <div className="flex items-center justify-between mb-5">
+            <h2 className="text-2xl font-bold font-display text-foreground flex items-center gap-2">
+              <Medal className="h-6 w-6 text-tactical-orange" /> Salón de la fama
+            </h2>
+            <Link to="/hall-of-fame" className="text-sm text-primary hover:underline flex items-center gap-1">
+              Ver todos <ChevronRight className="h-4 w-4" />
+            </Link>
+          </div>
+          <div className="grid md:grid-cols-3 gap-4">
+            {champions.map((c: any, i: number) => (
+              <div
+                key={i}
+                className="glass-card-hover p-5 border border-primary/30 animate-fade-up"
+                style={{ animationDelay: `${i * 100}ms` }}
+              >
+                <div className="flex items-center gap-2 text-primary text-xs font-bold uppercase tracking-wider mb-2">
+                  <Trophy className="h-4 w-4" /> Campeón
+                </div>
+                <p className="font-bold text-foreground text-lg truncate">{c.team_name}</p>
+                <p className="text-sm text-muted-foreground truncate">{c.tournament_name}</p>
+                <p className="text-xs text-muted-foreground mt-2">
+                  {new Date(c.created_at).toLocaleDateString("es", { day: "2-digit", month: "long", year: "numeric" })}
+                </p>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
       {/* Announcements */}
       <section>
         <div className="flex items-center justify-between mb-5">
