@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { Trophy, Megaphone, Zap, Users, Swords, ChevronRight, Gamepad2, Crown, TrendingUp, Radio, ShieldCheck, Activity, Calendar, Sparkles } from "lucide-react";
+import { Trophy, Megaphone, Zap, Users, Swords, ChevronRight, Gamepad2, Crown, TrendingUp, Radio, ShieldCheck, Activity, Calendar, Sparkles, ClipboardList, CheckCircle2, Gamepad, Medal } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import Countdown from "@/components/Countdown";
 
 export default function HomePage() {
   const { user, isAdmin } = useAuth();
@@ -12,6 +13,8 @@ export default function HomePage() {
   const [upcomingTournaments, setUpcomingTournaments] = useState<any[]>([]);
   const [nextTournamentLoading, setNextTournamentLoading] = useState(true);
   const [activity, setActivity] = useState<{ type: string; title: string; subtitle?: string; date: string; href?: string }[]>([]);
+  const [content, setContent] = useState<Record<string, string>>({});
+  const [champions, setChampions] = useState<any[]>([]);
 
   useEffect(() => {
     const loadData = async () => {
@@ -21,6 +24,7 @@ export default function HomePage() {
           profileRes, clanRes, tourneyRes, scrimRes, annRes,
           liveRes, upTourRes,
           newPlayersRes, newClansRes, newScrimsRes, newChampsRes,
+          contentRes, hofRes,
         ] = await Promise.all([
           supabase.from("profiles").select("*", { count: "exact", head: true }),
           supabase.from("clans").select("*", { count: "exact", head: true }),
@@ -33,7 +37,14 @@ export default function HomePage() {
           supabase.from("clans").select("name,leader_nickname,created_at").order("created_at", { ascending: false }).limit(4),
           supabase.from("scrims").select("name,created_by,created_at").order("created_at", { ascending: false }).limit(4),
           supabase.from("tournament_champions").select("team_name,tournament_name,created_at").order("created_at", { ascending: false }).limit(4),
+          supabase.from("site_content").select("key,value"),
+          supabase.from("tournament_champions").select("team_name,tournament_name,created_at").order("created_at", { ascending: false }).limit(3),
         ]);
+
+        const cmap: Record<string, string> = {};
+        (contentRes.data ?? []).forEach((r: any) => (cmap[r.key] = r.value ?? ""));
+        setContent(cmap);
+        setChampions(hofRes.data ?? []);
 
         setStats({
           players: (profileRes as any).count ?? 0,
@@ -151,6 +162,17 @@ export default function HomePage() {
     ? `/tournaments/${encodeURIComponent(nextTournament.name)}`
     : "/tournaments";
 
+  const heroTitle = content.hero_title || "Privadas para Mancos";
+  const heroSubtitle = content.hero_subtitle || "Lobbies Warzone LATAM sin tryhards";
+  const heroCta = content.hero_cta_text || "Quiero jugar";
+  const bannerImg = content.banner_image_url;
+  const howEnabled = (content.how_it_works_enabled ?? "true") !== "false";
+  const howSteps = [
+    { icon: ClipboardList, title: content.how_step_1_title || "Registrate", desc: content.how_step_1_desc || "Creá tu cuenta en 2 minutos" },
+    { icon: CheckCircle2, title: content.how_step_2_title || "Verificamos tu KD", desc: content.how_step_2_desc || "Nos aseguramos de que todos jugamos fair" },
+    { icon: Gamepad, title: content.how_step_3_title || "¡A jugar!", desc: content.how_step_3_desc || "Entrá a la privada y disfrutá sin sweats" },
+  ];
+
   const handleQuieroJugar = () => {
     try {
       const gtag = (window as any).gtag;
@@ -176,13 +198,20 @@ export default function HomePage() {
         <div className="absolute bottom-0 right-1/4 w-80 h-80 bg-gaming-cyan/15 rounded-full blur-[100px] pointer-events-none" />
 
         <div className="relative px-6 py-16 md:py-24 text-center">
+          {bannerImg && (
+            <img
+              src={bannerImg}
+              alt=""
+              className="absolute inset-0 w-full h-full object-cover opacity-20 pointer-events-none"
+            />
+          )}
           <div className="inline-flex items-center gap-2 px-4 py-1.5 mb-6 rounded-full bg-primary/10 border border-primary/20 text-primary text-sm font-medium">
             <span className="live-dot" />
-            Privadas para mancos · Warzone LATAM · Sin tryhards
+            {heroSubtitle}
           </div>
 
           <h1 className="text-5xl md:text-7xl font-black font-display gradient-text leading-[1.1] mb-4">
-            Privadas para mancos<br />sin lobbies imposibles.
+            {heroTitle}
           </h1>
 
           <p className="text-muted-foreground text-lg md:text-xl max-w-2xl mx-auto mb-6">
@@ -203,7 +232,7 @@ export default function HomePage() {
                 <div className="h-10 w-32 rounded-xl bg-primary/15 shrink-0" />
               </div>
             ) : nextTournament ? (
-              <div className="glass-card p-5 flex flex-col sm:flex-row items-center gap-4 text-left border border-primary/30">
+              <div className="glass-card p-5 flex flex-col sm:flex-row items-center gap-4 text-left border border-primary/30 animate-pulse-soft">
                 <div className="p-3 rounded-xl bg-primary/15 text-primary shrink-0">
                   <Trophy className="h-6 w-6" />
                 </div>
@@ -225,13 +254,16 @@ export default function HomePage() {
                       ? ` · ${nextTournament.max_players} cupos`
                       : ""}
                   </p>
+                  <p className="text-xs font-semibold text-primary mt-1 tabular-nums">
+                    <Countdown target={nextTournament.date} />
+                  </p>
                 </div>
                 <Link
                   to={nextTournamentHref}
                   onClick={handleQuieroJugar}
-                  className="glow-button px-5 py-2.5 rounded-xl text-primary-foreground font-semibold text-sm shrink-0"
+                  className="glow-button px-5 py-2.5 rounded-xl text-primary-foreground font-semibold text-sm shrink-0 transition-transform hover:scale-105"
                 >
-                  Quiero jugar
+                  {heroCta}
                 </Link>
               </div>
             ) : (
@@ -411,6 +443,62 @@ export default function HomePage() {
           <div className="glass-card p-12 text-center text-sm text-muted-foreground">Aún no hay actividad reciente.</div>
         )}
       </section>
+
+      {/* Cómo funciona */}
+      {howEnabled && (
+        <section>
+          <h2 className="text-2xl font-bold font-display text-foreground mb-5 flex items-center gap-2">
+            <Sparkles className="h-6 w-6 text-primary" /> Cómo funciona
+          </h2>
+          <div className="grid md:grid-cols-3 gap-4">
+            {howSteps.map((s, i) => (
+              <div
+                key={i}
+                className="glass-card-hover p-6 animate-fade-up"
+                style={{ animationDelay: `${i * 120}ms` }}
+              >
+                <div className="w-12 h-12 rounded-xl bg-primary/15 text-primary flex items-center justify-center mb-3">
+                  <s.icon className="h-6 w-6" />
+                </div>
+                <h3 className="font-semibold text-foreground text-lg">{s.title}</h3>
+                <p className="text-sm text-muted-foreground mt-1">{s.desc}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* Hall of Fame */}
+      {champions.length > 0 && (
+        <section>
+          <div className="flex items-center justify-between mb-5">
+            <h2 className="text-2xl font-bold font-display text-foreground flex items-center gap-2">
+              <Medal className="h-6 w-6 text-tactical-orange" /> Salón de la fama
+            </h2>
+            <Link to="/hall-of-fame" className="text-sm text-primary hover:underline flex items-center gap-1">
+              Ver todos <ChevronRight className="h-4 w-4" />
+            </Link>
+          </div>
+          <div className="grid md:grid-cols-3 gap-4">
+            {champions.map((c: any, i: number) => (
+              <div
+                key={i}
+                className="glass-card-hover p-5 border border-primary/30 animate-fade-up"
+                style={{ animationDelay: `${i * 100}ms` }}
+              >
+                <div className="flex items-center gap-2 text-primary text-xs font-bold uppercase tracking-wider mb-2">
+                  <Trophy className="h-4 w-4" /> Campeón
+                </div>
+                <p className="font-bold text-foreground text-lg truncate">{c.team_name}</p>
+                <p className="text-sm text-muted-foreground truncate">{c.tournament_name}</p>
+                <p className="text-xs text-muted-foreground mt-2">
+                  {new Date(c.created_at).toLocaleDateString("es", { day: "2-digit", month: "long", year: "numeric" })}
+                </p>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* Announcements */}
       <section>
