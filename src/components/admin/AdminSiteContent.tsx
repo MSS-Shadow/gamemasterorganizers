@@ -56,11 +56,18 @@ export default function AdminSiteContent() {
   const uploadImage = async (row: Row, file: File) => {
     setSavingKey(row.key);
     try {
-      const ext = file.name.split(".").pop() || "png";
-      const path = `site/${row.key}-${Date.now()}.${ext}`;
+      const nameParts = (file.name || "").split(".");
+      const rawExt = nameParts.length > 1 ? nameParts.pop() : "";
+      const ext = (rawExt || (file.type?.split("/")[1]) || "png").toLowerCase().replace(/[^a-z0-9]/g, "") || "png";
+      const safeKey = row.key.replace(/[^a-zA-Z0-9_-]/g, "_");
+      const path = `site/${safeKey}-${Date.now()}.${ext}`;
       const { error: upErr } = await supabase.storage
         .from("uploads")
-        .upload(path, file, { upsert: true, cacheControl: "3600" });
+        .upload(path, file, {
+          upsert: true,
+          cacheControl: "3600",
+          contentType: file.type || undefined,
+        });
       if (upErr) throw upErr;
       const { data } = supabase.storage.from("uploads").getPublicUrl(path);
       const url = data.publicUrl;
